@@ -1,0 +1,7 @@
+name: perx
+description: A permissions group plugin
+main: io.github.aparx.perx.Main
+version: '${project.version}'
+author: "aparx (@bonedfps)"
+api-version: 1.16
+website: "https://github.com/aparx/perx"
