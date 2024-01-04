@@ -1,6 +1,7 @@
 package io.github.aparx.perx.user;
 
 import com.google.common.base.Preconditions;
+import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.utils.WeakHashSet;
 import org.bukkit.Bukkit;
@@ -50,6 +51,14 @@ public class PerxUser implements Iterable<PerxGroup> {
 
   public WeakHashSet<PerxGroup> getSubscribed() {
     return subscribed;
+  }
+
+  public void update() {
+    @Nullable Player player = getPlayer();
+    if (player == null) return;
+    getSubscribed().stream().sorted().forEach((group) -> {
+      Perx.getInstance().getGroupHandler().applyGroupSync(player, group);
+    });
   }
 
   @Override

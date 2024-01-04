@@ -1,8 +1,6 @@
 package io.github.aparx.perx.events;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupController;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;

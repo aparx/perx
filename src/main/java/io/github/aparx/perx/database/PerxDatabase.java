@@ -23,7 +23,7 @@ import java.util.logging.Level;
 @DefaultQualifier(NonNull.class)
 public class PerxDatabase implements Database {
 
-  private transient final Object lock = new Object();
+  private final transient Object lock = new Object();
 
   private volatile @Nullable ConnectionSource source;
   private DatabaseState state = DatabaseState.DISABLED;

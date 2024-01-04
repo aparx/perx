@@ -8,6 +8,7 @@ import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.permission.*;
 import org.apache.commons.lang3.Validate;
+import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
@@ -57,6 +58,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
 
   public static PerxGroup copyOf(PerxGroup group) {
     PerxGroup copy = of(group.name, group.permissions.copy());
+    copy.setPriority(group.getPriority());
     copy.styles.putAll(group.styles);
     return copy;
   }

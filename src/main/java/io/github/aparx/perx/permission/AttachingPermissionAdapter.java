@@ -1,7 +1,10 @@
 package io.github.aparx.perx.permission;
 
 import com.google.common.base.Preconditions;
+import io.github.aparx.perx.utils.WeakHashSet;
+import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permissible;
+import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -21,9 +24,12 @@ import java.util.WeakHashMap;
 @DefaultQualifier(NonNull.class)
 public class AttachingPermissionAdapter implements PermissionAdapter {
 
+  public static final String OPERATOR_WILDCARD = String.valueOf(PerxPermission.WILDCARD_OPERATOR);
+
   private final Plugin plugin;
 
   private final Map<Permissible, PermissionAttachment> attachments = new WeakHashMap<>();
+  private final WeakHashSet<Permissible> ops = new WeakHashSet<>();
 
   public AttachingPermissionAdapter(Plugin plugin) {
     Preconditions.checkNotNull(plugin, "Plugin must not be null");
@@ -33,19 +39,26 @@ public class AttachingPermissionAdapter implements PermissionAdapter {
   @Override
   public void clearPermissions(Permissible permissible) {
     @Nullable PermissionAttachment attachment = attachments.remove(permissible);
-    if (attachment != null) permissible.removeAttachment(attachment);
+    if (attachment != null) attachment.remove();
+    if (ops.remove(permissible))
+      permissible.setOp(false);
   }
 
   @Override
   public void setPermission(Permissible permissible, String name, boolean value) {
     // TODO test rooted wildcard
     getOrCreateAttachment(permissible).setPermission(name, value);
+    if (isWildcardRoot(name)) {
+      ops.add(permissible);
+      permissible.setOp(true);
+    }
   }
 
   @Override
   public void unsetPermission(Permissible permissible, String name) {
-
     getOrCreateAttachment(permissible).unsetPermission(name);
+    if (ops.remove(permissible))
+      permissible.setOp(false);
   }
 
   @Override
@@ -54,7 +67,7 @@ public class AttachingPermissionAdapter implements PermissionAdapter {
   }
 
   public boolean isWildcardRoot(String name) {
-    return String.valueOf(PerxPermission.WILDCARD_OPERATOR).equals(name);
+    return OPERATOR_WILDCARD.equals(name);
   }
 
   protected final PermissionAttachment getOrCreateAttachment(Permissible permissible) {

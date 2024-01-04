@@ -8,7 +8,6 @@ import io.github.aparx.perx.database.data.many.UserGroup;
 import io.github.aparx.perx.database.data.many.UserGroupController;
 import io.github.aparx.perx.group.style.GroupStyleExecutor;
 import io.github.aparx.perx.permission.PermissionRegister;
-import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.PerxUserController;
 import io.github.aparx.perx.user.UserCacheStrategy;
 import org.bukkit.Bukkit;
@@ -18,10 +17,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
 
 /**
  * A handling class for subscribing, unsubscribing and generally handling groups.
@@ -84,12 +81,23 @@ public final class PerxGroupHandler {
    * @param player the player to apply the group to
    * @param group  the group that is supposed to be applied to {@code player}
    */
+  public void applyGroupSync(Player player, PerxGroup group) {
+    if (!Bukkit.isPrimaryThread())
+      Bukkit.getScheduler().runTask(Perx.getPlugin(), () -> applyGroup(player, group));
+    else applyGroup(player, group);
+  }
+
+  /** @deprecated Recommend {@code applyGroupSync} instead */
+  @Deprecated
+  @SuppressWarnings("DeprecatedIsStillUsed")
   public void applyGroup(Player player, PerxGroup group) {
     PermissionRegister register = group.getPermissions();
-    register.getAdapter().clearPermissions(player);
-    register.forEach((x) -> x.apply(player, true));
-    // TODO check for priority when applying styles|
-    styleExecutor.apply(group, player);
+    Bukkit.getScheduler().runTask(Perx.getPlugin(), () -> {
+      register.getAdapter().clearPermissions(player);
+      register.forEach((perm) -> perm.apply(player, true));
+      // TODO check for priority when applying styles|
+      styleExecutor.apply(group, player);
+    });
   }
 
   public void resetGroup(Player player, PerxGroup group) {
@@ -101,8 +109,9 @@ public final class PerxGroupHandler {
     return userController.fetch(uuid, UserCacheStrategy.AUTO).thenCompose((user) -> {
       if (user == null || !user.getSubscribed().contains(group))
         return CompletableFuture.completedFuture(false);
-      return database.executeAsync(() -> userGroupController.getDao().deleteBuilder()
-          .limit(1L).where()
+      return database.executeAsync(() -> userGroupController.getDao()
+          .deleteBuilder().limit(1L).where()
+          // unique combo index should force O(1) in engine's register
           .eq(UserGroup.USER_ID_FIELD_NAME, user)
           .eq(UserGroup.GROUP_ID_FIELD_NAME, group)
           .query()
@@ -129,7 +138,7 @@ public final class PerxGroupHandler {
           return false;
         user.getSubscribed().add(group);
         @Nullable Player player = user.getPlayer();
-        if (player != null) applyGroup(player, group);
+        if (player != null) applyGroupSync(player, group);
         return true;
       });
     });

@@ -49,7 +49,7 @@ public class PerxUserManager implements PerxUserController {
       if (userMap.containsKey(uuid))
         return CompletableFuture.completedFuture(userMap.get(uuid));
       return userGroupController.getGroupsByUser(uuid).thenApply((groups) -> {
-        PerxUser user = new PerxUser(uuid);
+        PerxUser user = (userMap.containsKey(uuid) ? userMap.get(uuid) : new PerxUser(uuid));
         user.getSubscribed().addAll(groups);
         UserCacheStrategy strat = strategy;
         if (strat == UserCacheStrategy.AUTO && user.getOffline().isOnline())

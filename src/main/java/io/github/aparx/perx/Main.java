@@ -1,9 +1,7 @@
 package io.github.aparx.perx;
 
 import io.github.aparx.perx.database.PerxDatabase;
-import io.github.aparx.perx.database.data.many.UserGroupController;
 import io.github.aparx.perx.events.GroupsFetchedEvent;
-import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupBuilder;
 import io.github.aparx.perx.group.PerxGroupController;
 import io.github.aparx.perx.group.PerxGroupHandler;
@@ -40,8 +38,7 @@ public final class Main extends JavaPlugin implements Listener {
     /*PerxGroupBuilder.builder("admin")
         .priority(100)
         .prefix("§7[§4Admin§7] §r")
-        .addPermissions("admin.publish.*")
-        .addPermissions("admin.*")
+        .addPermissions("*")
         .build()
         .push();
 
@@ -62,28 +59,4 @@ public final class Main extends JavaPlugin implements Listener {
       throw new IllegalStateException("Could not unload Perx");
   }
 
-  public void updatePlayer(Player player) {
-    Perx perx = Perx.getInstance();
-    perx.getDatabase().queue((__) -> perx.getUserController()
-        .fetch(player.getUniqueId(), UserCacheStrategy.RUNTIME)
-        .thenAccept((user) -> {
-          if (user != null)
-            user.getSubscribed().forEach((x) -> perx.getGroupHandler().applyGroup(player, x));
-        }));
-  }
-
-  @EventHandler
-  public void onLoad(GroupsFetchedEvent event) {
-    Bukkit.getOnlinePlayers().forEach(this::updatePlayer);
-  }
-
-  @EventHandler
-  public void onJoin(PlayerJoinEvent event) {
-    /*Perx perx = Perx.getInstance();
-    updatePlayer(event.getPlayer());
-    PerxGroupController groupController = Perx.getInstance().getGroupController();
-    PerxGroupHandler handler = Perx.getInstance().getGroupHandler();
-    handler.subscribe(event.getPlayer().getUniqueId(),
-        Objects.requireNonNull(groupController.get("mod")));*/
-  }
 }

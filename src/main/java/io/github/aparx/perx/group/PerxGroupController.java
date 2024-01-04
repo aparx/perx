@@ -47,6 +47,8 @@ public interface PerxGroupController extends Iterable<PerxGroup>, Copyable<PerxG
   @CanIgnoreReturnValue
   CompletableFuture<Boolean> delete(String name);
 
+  int size();
+
   @CanIgnoreReturnValue
   boolean register(PerxGroup group);
 

@@ -4,19 +4,26 @@ import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.database.data.many.UserGroupController;
+import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupController;
 import io.github.aparx.perx.group.PerxGroupHandler;
 import io.github.aparx.perx.group.PerxGroupManager;
 import io.github.aparx.perx.group.style.GroupStyleExecutor;
+import io.github.aparx.perx.listeners.UpdateListener;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.PerxUserManager;
 import io.github.aparx.perx.user.PerxUserController;
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,6 +38,8 @@ public final class Perx {
   private static final Perx instance = new Perx();
 
   private transient final Object lock = new Object();
+
+  private final List<Listener> listeners = List.of(new UpdateListener());
 
   private volatile boolean loaded;
 
@@ -104,6 +113,7 @@ public final class Perx {
         this.userController = new PerxUserManager(database, userGroupController);
         this.groupHandler = new PerxGroupHandler(
             database, userController, groupController, userGroupController, styleExecutor);
+        listeners.forEach((x) -> Bukkit.getPluginManager().registerEvents(x, plugin));
         return true;
       } catch (Exception e) {
         logger.log(Level.SEVERE, "Severe error on load", e);
@@ -120,13 +130,14 @@ public final class Perx {
       if (!loaded) return false;
       try {
         this.plugin = null;
-        if (groupController != null && userController != null)
+        listeners.forEach(HandlerList::unregisterAll);
+        if (groupHandler != null && userController != null)
           Bukkit.getOnlinePlayers().forEach((player) -> {
             @Nullable PerxUser user = userController.get(player);
             if (user == null) return;
             // clear player from all groups without unsubscribing
-            //for (PerxGroup group : new HashSet<>(user.getSubscribed()))
-            //  groupHandler.clearSubscriber(player, group);
+            for (PerxGroup group : new HashSet<>(user.getSubscribed()))
+              groupHandler.resetGroup(player, group);
           });
       } finally {
         loaded = false;

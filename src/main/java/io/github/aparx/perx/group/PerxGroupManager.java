@@ -126,6 +126,11 @@ public class PerxGroupManager implements PerxGroupController {
   }
 
   @Override
+  public int size() {
+    return groupMap.size();
+  }
+
+  @Override
   public boolean register(PerxGroup group) {
     return groupMap.putIfAbsent(group.getName(), group) == null;
   }
