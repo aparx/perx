@@ -1,8 +1,11 @@
 package io.github.aparx.perx.user;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.AbstractIterator;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.group.PerxGroup;
+import io.github.aparx.perx.group.many.PerxUserGroup;
 import io.github.aparx.perx.utils.WeakHashSet;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -12,6 +15,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -19,18 +25,18 @@ import java.util.*;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public class PerxUser implements Iterable<PerxGroup> {
+public class PerxUser implements Iterable<PerxUserGroup> {
 
   private final UUID id;
 
   /** Set of group names this user is subscribed to */
-  private final WeakHashSet<PerxGroup> subscribed;
+  private final Map<String, PerxUserGroup> subscribed;
 
   public PerxUser(UUID id) {
-    this(id, new WeakHashSet<>());
+    this(id, new ConcurrentHashMap<>());
   }
 
-  public PerxUser(UUID id, WeakHashSet<PerxGroup> subscribed) {
+  public PerxUser(UUID id, Map<String, PerxUserGroup> subscribed) {
     Preconditions.checkNotNull(id, "ID must not be null");
     Preconditions.checkNotNull(subscribed, "Set must not be null");
     this.id = id;
@@ -49,21 +55,49 @@ public class PerxUser implements Iterable<PerxGroup> {
     return Bukkit.getPlayer(id);
   }
 
-  public WeakHashSet<PerxGroup> getSubscribed() {
-    return subscribed;
-  }
-
   public void update() {
     @Nullable Player player = getPlayer();
     if (player == null) return;
-    getSubscribed().stream().sorted().forEach((group) -> {
-      Perx.getInstance().getGroupHandler().applyGroupSync(player, group);
+    subscribed.values().stream().sorted().forEach((group) -> {
+      Perx.getInstance().getGroupHandler().applyGroupSync(player, group.getGroup());
     });
   }
 
+  @CanIgnoreReturnValue
+  public @Nullable PerxUserGroup addGroup(PerxUserGroup group) {
+    return subscribed.put(group.getGroup().getName(), group);
+  }
+
+  @CanIgnoreReturnValue
+  public boolean removeGroup(PerxUserGroup group) {
+    return subscribed.remove(group.getGroup().getName(), group);
+  }
+
+  @CanIgnoreReturnValue
+  public @Nullable PerxUserGroup removeGroup(String groupName) {
+    return subscribed.remove(groupName);
+  }
+
+  public Collection<PerxUserGroup> getSubscribed() {
+    return subscribed.values();
+  }
+
   @Override
-  public Iterator<PerxGroup> iterator() {
-    return subscribed.iterator();
+  public Iterator<PerxUserGroup> iterator() {
+    Iterator<PerxUserGroup> iterator = subscribed.values().iterator();
+    return new AbstractIterator<>() {
+      @Nullable
+      @Override
+      protected PerxUserGroup computeNext() {
+        if (!iterator.hasNext())
+          return endOfData();
+        PerxUserGroup next = iterator.next();
+        if (next.isGroupValid()) return next;
+        Perx.getInstance().getUserGroupController().removeById(next.getId());
+        iterator.remove();
+        return computeNext();
+      }
+    };
   }
 
   @Override

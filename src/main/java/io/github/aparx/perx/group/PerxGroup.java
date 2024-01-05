@@ -2,6 +2,7 @@ package io.github.aparx.perx.group;
 
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.j256.ormlite.dao.Dao;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.database.data.DatabaseConvertible;
 import io.github.aparx.perx.database.data.group.GroupModel;
@@ -36,9 +37,13 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   private PerxGroup(String name, PermissionRegister permissions) {
     Preconditions.checkNotNull(name, "Name must not be null");
     Preconditions.checkNotNull(permissions, "Permissions must not be null");
-    this.name = name.toLowerCase(Locale.ENGLISH);
+    this.name = formatName(name);
     this.styles = new EnumMap<>(GroupStyleKey.class);
     this.permissions = permissions;
+  }
+
+  public static String formatName(String name) {
+    return name.toLowerCase(Locale.ENGLISH);
   }
 
   public static PerxGroup of(String name, PermissionRegister register) {
@@ -54,6 +59,15 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   public static PerxGroup of(String name) {
     // TODO put mutable factory within the current Perx instance
     return of(name, new AttachingPermissionAdapter(Perx.getPlugin()));
+  }
+
+  public static PerxGroup of(GroupModel model) {
+    return PerxGroupBuilder.builder(model.getId())
+        .prefix(model.getPrefix())
+        .suffix(model.getSuffix())
+        .priority(model.getPriority())
+        .addPermissions(model.getPermissions())
+        .build();
   }
 
   public static PerxGroup copyOf(PerxGroup group) {
@@ -89,8 +103,9 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   }
 
   @Override
-  public CompletableFuture<@Nullable Void> push() {
-    return Perx.getInstance().getGroupController().upsert(this).thenApply((x) -> null);
+  public CompletableFuture<Dao.CreateOrUpdateStatus> push() {
+    // TODO through the push, force an update on all online players with this group
+    return Perx.getInstance().getGroupController().upsert(this);
   }
 
   @CanIgnoreReturnValue

@@ -66,7 +66,7 @@ public interface PerxGroupController extends Iterable<PerxGroup>, Copyable<PerxG
 
   default PerxGroup getLoudly(String name) {
     @Nullable PerxGroup group = get(name);
-    Preconditions.checkArgument(group != null, "Group unknown");
+    Preconditions.checkArgument(group != null, "Group " + name + " unknown");
     return group;
   }
 

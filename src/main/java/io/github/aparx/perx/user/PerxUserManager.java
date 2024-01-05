@@ -2,7 +2,7 @@ package io.github.aparx.perx.user;
 
 import com.google.common.base.Preconditions;
 import io.github.aparx.perx.database.Database;
-import io.github.aparx.perx.database.data.many.UserGroupController;
+import io.github.aparx.perx.group.many.PerxUserGroupManager;
 import org.bukkit.OfflinePlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -25,9 +25,9 @@ public class PerxUserManager implements PerxUserController {
 
   protected final Map<UUID, PerxUser> userMap = new HashMap<>();
   protected final Database database;
-  protected final UserGroupController userGroupController;
+  protected final PerxUserGroupManager userGroupController;
 
-  public PerxUserManager(Database database, UserGroupController userGroupController) {
+  public PerxUserManager(Database database, PerxUserGroupManager userGroupController) {
     Preconditions.checkNotNull(database, "Database must not be null");
     Preconditions.checkNotNull(userGroupController, "Controller must not be null");
     this.database = database;
@@ -48,9 +48,9 @@ public class PerxUserManager implements PerxUserController {
     synchronized (lock) {
       if (userMap.containsKey(uuid))
         return CompletableFuture.completedFuture(userMap.get(uuid));
-      return userGroupController.getGroupsByUser(uuid).thenApply((groups) -> {
+      return userGroupController.getUserGroupsByUser(uuid).thenApply((userGroups) -> {
         PerxUser user = (userMap.containsKey(uuid) ? userMap.get(uuid) : new PerxUser(uuid));
-        user.getSubscribed().addAll(groups);
+        userGroups.forEach(user::addGroup);
         UserCacheStrategy strat = strategy;
         if (strat == UserCacheStrategy.AUTO && user.getOffline().isOnline())
           strat = UserCacheStrategy.RUNTIME;

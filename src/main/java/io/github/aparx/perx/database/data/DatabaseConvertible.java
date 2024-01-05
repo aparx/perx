@@ -13,6 +13,6 @@ public interface DatabaseConvertible<T extends DatabaseModel<?>> {
   T toModel();
 
   /** Pushes this model to the database (performs an update or insert) */
-  CompletableFuture<Void> push();
+  CompletableFuture<?> push();
 
 }

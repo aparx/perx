@@ -12,6 +12,8 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.util.UUID;
+
 /**
  * @author aparx (Vinzent Z.)
  * @version 2024-01-04 11:42
@@ -40,8 +42,10 @@ public final class UpdateListener implements Listener {
   @EventHandler(priority = EventPriority.MONITOR)
   public void onQuit(PlayerQuitEvent event) {
     // remove the quitting player from cache
+    UUID uuid = event.getPlayer().getUniqueId();
     // TODO: clear cache of offline people on interval instead
-    Perx.getInstance().getUserController().remove(event.getPlayer());
+    Perx.getInstance().getUserController().remove(uuid);
+    Perx.getInstance().getUserGroupController().removeByUser(uuid);
   }
 
   private void updatePlayer(Player player) {
@@ -50,7 +54,7 @@ public final class UpdateListener implements Listener {
         .thenAccept((user) -> {
           if (user != null)
             user.getSubscribed().stream().sorted().forEach((x) -> {
-              Perx.getInstance().getGroupHandler().applyGroupSync(player, x);
+              Perx.getInstance().getGroupHandler().updateUserGroup(x);
             });
         });
   }

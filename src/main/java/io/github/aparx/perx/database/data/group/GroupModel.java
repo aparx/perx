@@ -90,4 +90,14 @@ public class GroupModel implements DatabaseModel<String> {
     setPermissions(permsToString(permissions));
   }
 
+  @Override
+  public String toString() {
+    return "GroupModel{" +
+        "id='" + id + '\'' +
+        ", priority=" + priority +
+        ", prefix='" + prefix + '\'' +
+        ", suffix='" + suffix + '\'' +
+        ", permissions='" + permissions + '\'' +
+        '}';
+  }
 }

@@ -12,6 +12,7 @@ import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.database.PerxDatabase;
 import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.events.GroupsFetchedEvent;
+import io.github.aparx.perx.group.many.PerxUserGroup;
 import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -58,12 +59,7 @@ public class PerxGroupManager implements PerxGroupController {
 
   @CanIgnoreReturnValue
   public boolean registerModel(GroupModel model) {
-    return register(PerxGroupBuilder.builder(model.getId())
-        .prefix(model.getPrefix())
-        .suffix(model.getSuffix())
-        .priority(model.getPriority())
-        .addPermissions(model.getPermissions())
-        .build());
+    return register(PerxGroup.of(model));
   }
 
   @Override
@@ -142,7 +138,12 @@ public class PerxGroupManager implements PerxGroupController {
 
   @Override
   public @Nullable PerxGroup remove(String name) {
-    return groupMap.remove(name.toLowerCase(Locale.ENGLISH));
+    // TODO remove all user groups from groups with given name
+    name = PerxGroup.formatName(name);
+    @Nullable PerxGroup removed = groupMap.remove(name);
+    if (removed == null) return null;
+    Perx.getInstance().getUserGroupController().removeByGroup(name);
+    return removed;
   }
 
   @Override
@@ -152,12 +153,12 @@ public class PerxGroupManager implements PerxGroupController {
 
   @Override
   public boolean contains(String name) {
-    return groupMap.containsKey(name.toLowerCase(Locale.ENGLISH));
+    return groupMap.containsKey(PerxGroup.formatName(name));
   }
 
   @Override
   public @Nullable PerxGroup get(String name) {
-    return groupMap.get(name.toLowerCase(Locale.ENGLISH));
+    return groupMap.get(PerxGroup.formatName(name));
   }
 
   @Override

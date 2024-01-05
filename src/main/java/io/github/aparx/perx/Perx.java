@@ -3,7 +3,8 @@ package io.github.aparx.perx;
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.database.Database;
-import io.github.aparx.perx.database.data.many.UserGroupController;
+import io.github.aparx.perx.group.many.PerxUserGroup;
+import io.github.aparx.perx.group.many.PerxUserGroupManager;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupController;
 import io.github.aparx.perx.group.PerxGroupHandler;
@@ -21,7 +22,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
@@ -48,7 +48,7 @@ public final class Perx {
   private @Nullable PerxGroupController groupController;
   private @Nullable PerxGroupHandler groupHandler;
   private @Nullable Database database;
-  private @Nullable UserGroupController userGroupController;
+  private @Nullable PerxUserGroupManager userGroupController;
   private Logger logger = Bukkit.getLogger();
 
   private Perx() {}
@@ -85,7 +85,7 @@ public final class Perx {
     return require(groupHandler, "GroupHandler is undefined");
   }
 
-  public UserGroupController getUserGroupController() {
+  public PerxUserGroupManager getUserGroupController() {
     return require(userGroupController, "UserGroupController is undefined");
   }
 
@@ -109,10 +109,9 @@ public final class Perx {
         this.loaded = true;
         this.database = database;
         (this.groupController = new PerxGroupManager(database)).load();
-        (this.userGroupController = new UserGroupController(database, groupController)).load();
+        (this.userGroupController = new PerxUserGroupManager(database)).load();
         this.userController = new PerxUserManager(database, userGroupController);
-        this.groupHandler = new PerxGroupHandler(
-            database, userController, groupController, userGroupController, styleExecutor);
+        this.groupHandler = new PerxGroupHandler(database, styleExecutor);
         listeners.forEach((x) -> Bukkit.getPluginManager().registerEvents(x, plugin));
         return true;
       } catch (Exception e) {
@@ -136,8 +135,10 @@ public final class Perx {
             @Nullable PerxUser user = userController.get(player);
             if (user == null) return;
             // clear player from all groups without unsubscribing
-            for (PerxGroup group : new HashSet<>(user.getSubscribed()))
-              groupHandler.resetGroup(player, group);
+            for (PerxUserGroup userGroup : new HashSet<>(user.getSubscribed())) {
+              @Nullable PerxGroup group = userGroup.findGroup();
+              if (group != null) groupHandler.resetGroup(player, group);
+            }
           });
       } finally {
         loaded = false;
