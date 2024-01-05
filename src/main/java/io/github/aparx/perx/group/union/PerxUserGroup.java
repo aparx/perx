@@ -1,4 +1,4 @@
-package io.github.aparx.perx.group.many;
+package io.github.aparx.perx.group.union;
 
 import com.google.common.base.Preconditions;
 import com.j256.ormlite.dao.Dao;
@@ -23,6 +23,8 @@ import java.util.concurrent.CompletableFuture;
  */
 @DefaultQualifier(NonNull.class)
 public class PerxUserGroup implements DatabaseConvertible<UserGroupModel> {
+
+  private static final long CACHE_ONLY_ID = -1;
 
   private final UserGroupModel model;
 
@@ -57,11 +59,16 @@ public class PerxUserGroup implements DatabaseConvertible<UserGroupModel> {
   }
 
   public static PerxUserGroup of(UUID userId, PerxGroup group) {
-    return of(-1, userId, group);
+    return of(CACHE_ONLY_ID, userId, group);
   }
 
   public static PerxUserGroup of(long id, UUID userId, PerxGroup group) {
     return new PerxUserGroup(id, userId, group);
+  }
+
+  /** Returns true if this group has a valid ID that matches a database model */
+  public boolean isModelInDatabase() {
+    return getId() != CACHE_ONLY_ID;
   }
 
   public long getId() {

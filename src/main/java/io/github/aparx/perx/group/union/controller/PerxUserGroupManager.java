@@ -1,4 +1,4 @@
-package io.github.aparx.perx.group.many;
+package io.github.aparx.perx.group.union.controller;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ListMultimap;
@@ -14,6 +14,7 @@ import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.database.data.many.UserGroupDao;
 import io.github.aparx.perx.database.data.many.UserGroupModel;
 import io.github.aparx.perx.group.PerxGroup;
+import io.github.aparx.perx.group.union.PerxUserGroup;
 import io.github.aparx.perx.user.PerxUser;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -88,7 +89,6 @@ public class PerxUserGroupManager implements PerxUserGroupController {
               return (group != null ? PerxUserGroup.of(model, group) : null);
             })
             .filter(Objects::nonNull)
-            .sorted()
             .collect(Collectors.toList()))
         .thenApply((list) -> {
           list.forEach(this::register);

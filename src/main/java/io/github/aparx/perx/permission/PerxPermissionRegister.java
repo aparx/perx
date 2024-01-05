@@ -15,7 +15,8 @@ import java.util.Collection;
  * @version 2024-01-04 00:59
  * @since 1.0
  */
-public interface PermissionRegister extends Iterable<PerxPermission>, Copyable<PermissionRegister> {
+public interface PerxPermissionRegister extends Iterable<PerxPermission>,
+    Copyable<PerxPermissionRegister> {
 
   /**
    * Returns an interface that handles the giving and revoking of permissions of permissibles.

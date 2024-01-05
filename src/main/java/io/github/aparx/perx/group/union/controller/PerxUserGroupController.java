@@ -1,13 +1,13 @@
-package io.github.aparx.perx.group.many;
+package io.github.aparx.perx.group.union.controller;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.database.PerxModelController;
 import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.database.data.many.UserGroupDao;
 import io.github.aparx.perx.group.PerxGroup;
+import io.github.aparx.perx.group.union.PerxUserGroup;
 import io.github.aparx.perx.user.PerxUser;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.List;

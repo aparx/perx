@@ -6,6 +6,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import io.github.aparx.perx.database.data.DatabaseModel;
 import io.github.aparx.perx.group.PerxGroup;
+import org.bukkit.permissions.PermissionDefault;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -30,8 +31,11 @@ public class GroupModel implements DatabaseModel<String> {
   @DatabaseField
   private String suffix;
 
-  /** All permissions as a JSON string */
   @DatabaseField
+  private boolean isDefault;
+
+  /** All permissions as a JSON string */
+  @DatabaseField(canBeNull = false)
   private String permissions;
 
   protected GroupModel() {}
@@ -70,6 +74,14 @@ public class GroupModel implements DatabaseModel<String> {
     this.suffix = suffix;
   }
 
+  public boolean isDefault() {
+    return isDefault;
+  }
+
+  public void setDefault(boolean isDefault) {
+    this.isDefault = isDefault;
+  }
+
   public int getPriority() {
     return priority;
   }
@@ -97,6 +109,7 @@ public class GroupModel implements DatabaseModel<String> {
         ", priority=" + priority +
         ", prefix='" + prefix + '\'' +
         ", suffix='" + suffix + '\'' +
+        ", defaultValue=" + isDefault +
         ", permissions='" + permissions + '\'' +
         '}';
   }

@@ -283,7 +283,7 @@ public final class ArrayPath implements Iterable<@NonNull String> {
 
   @Override
   public String toString() {
-    return "ArrayPath{" + Arrays.toString(segments) + '}';
+    return Arrays.toString(segments);
   }
 
   @Override

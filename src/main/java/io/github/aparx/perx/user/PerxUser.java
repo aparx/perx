@@ -4,9 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.AbstractIterator;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.Perx;
-import io.github.aparx.perx.group.PerxGroup;
-import io.github.aparx.perx.group.many.PerxUserGroup;
-import io.github.aparx.perx.utils.WeakHashSet;
+import io.github.aparx.perx.group.union.PerxUserGroup;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -16,8 +14,6 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -36,7 +32,7 @@ public class PerxUser implements Iterable<PerxUserGroup> {
     this(id, new ConcurrentHashMap<>());
   }
 
-  public PerxUser(UUID id, Map<String, PerxUserGroup> subscribed) {
+  private PerxUser(UUID id, Map<String, PerxUserGroup> subscribed) {
     Preconditions.checkNotNull(id, "ID must not be null");
     Preconditions.checkNotNull(subscribed, "Set must not be null");
     this.id = id;
@@ -55,14 +51,6 @@ public class PerxUser implements Iterable<PerxUserGroup> {
     return Bukkit.getPlayer(id);
   }
 
-  public void update() {
-    @Nullable Player player = getPlayer();
-    if (player == null) return;
-    subscribed.values().stream().sorted().forEach((group) -> {
-      Perx.getInstance().getGroupHandler().applyGroupSync(player, group.getGroup());
-    });
-  }
-
   @CanIgnoreReturnValue
   public @Nullable PerxUserGroup addGroup(PerxUserGroup group) {
     return subscribed.put(group.getGroup().getName(), group);
@@ -76,6 +64,10 @@ public class PerxUser implements Iterable<PerxUserGroup> {
   @CanIgnoreReturnValue
   public @Nullable PerxUserGroup removeGroup(String groupName) {
     return subscribed.remove(groupName);
+  }
+
+  public boolean hasGroup(String groupName) {
+    return subscribed.containsKey(groupName);
   }
 
   public Collection<PerxUserGroup> getSubscribed() {

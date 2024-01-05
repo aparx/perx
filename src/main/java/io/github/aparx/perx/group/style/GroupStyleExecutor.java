@@ -29,6 +29,6 @@ public interface GroupStyleExecutor {
 
   /** Removes the style from a group and permissible */
   @CanIgnoreReturnValue
-  boolean remove(PerxGroup group, Permissible permissible);
+  boolean reset(PerxGroup group, Permissible permissible);
 
 }

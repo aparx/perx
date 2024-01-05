@@ -1,16 +1,18 @@
-package io.github.aparx.perx.group;
+package io.github.aparx.perx.group.controller;
 
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.j256.ormlite.dao.Dao;
 import io.github.aparx.perx.database.PerxModelController;
 import io.github.aparx.perx.database.data.group.GroupModel;
+import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.utils.Copyable;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -61,6 +63,8 @@ public interface PerxGroupController extends Iterable<PerxGroup>, Copyable<PerxG
   boolean contains(PerxGroup group);
 
   boolean contains(String name);
+
+  Collection<PerxGroup> getDefaults();
 
   @Nullable PerxGroup get(String name);
 

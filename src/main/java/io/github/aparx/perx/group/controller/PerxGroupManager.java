@@ -1,27 +1,27 @@
-package io.github.aparx.perx.group;
+package io.github.aparx.perx.group.controller;
 
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import com.google.gson.Gson;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.database.Database;
-import io.github.aparx.perx.database.PerxDatabase;
 import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.events.GroupsFetchedEvent;
-import io.github.aparx.perx.group.many.PerxUserGroup;
+import io.github.aparx.perx.group.PerxGroup;
 import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import javax.xml.crypto.Data;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -31,7 +31,7 @@ import java.util.logging.Level;
 @DefaultQualifier(NonNull.class)
 public class PerxGroupManager implements PerxGroupController {
 
-  private final Map<String, PerxGroup> groupMap = new HashMap<>();
+  private final Map<String, PerxGroup> groupMap = new ConcurrentHashMap<>();
   private @Nullable Dao<GroupModel, String> dao;
 
   private final Database database;
@@ -109,10 +109,10 @@ public class PerxGroupManager implements PerxGroupController {
   public CompletableFuture<Boolean> delete(String name) {
     CompletableFuture<Boolean> future = new CompletableFuture<>();
     database.executeAsync(() -> getDao().deleteById(name))
-        .thenApply((x) -> x >= 1)
         .thenApply((x) -> {
-          if (x) remove(name);
-          return x;
+          if (x < 1) return false;
+          remove(name);
+          return true;
         })
         .whenComplete((val, ex) -> {
           if (ex != null) future.completeExceptionally(ex);
@@ -157,6 +157,11 @@ public class PerxGroupManager implements PerxGroupController {
   }
 
   @Override
+  public Collection<PerxGroup> getDefaults() {
+    return stream().filter(PerxGroup::isDefault).collect(Collectors.toList());
+  }
+
+  @Override
   public @Nullable PerxGroup get(String name) {
     return groupMap.get(PerxGroup.formatName(name));
   }
@@ -164,5 +169,9 @@ public class PerxGroupManager implements PerxGroupController {
   @Override
   public Iterator<PerxGroup> iterator() {
     return groupMap.values().iterator();
+  }
+
+  public Stream<PerxGroup> stream() {
+    return groupMap.values().stream();
   }
 }

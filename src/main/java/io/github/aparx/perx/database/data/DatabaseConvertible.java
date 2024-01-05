@@ -1,7 +1,8 @@
 package io.github.aparx.perx.database.data;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
+
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -13,6 +14,7 @@ public interface DatabaseConvertible<T extends DatabaseModel<?>> {
   T toModel();
 
   /** Pushes this model to the database (performs an update or insert) */
+  @CanIgnoreReturnValue
   CompletableFuture<?> push();
 
 }

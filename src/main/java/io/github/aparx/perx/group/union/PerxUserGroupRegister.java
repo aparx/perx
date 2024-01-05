@@ -1,7 +1,6 @@
-package io.github.aparx.perx.group.many;
+package io.github.aparx.perx.group.union;
 
 import io.github.aparx.perx.group.PerxGroup;
-import io.github.aparx.perx.group.many.PerxUserGroup;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;

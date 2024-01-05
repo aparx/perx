@@ -1,8 +1,10 @@
-package io.github.aparx.perx.user;
+package io.github.aparx.perx.user.controller;
 
 import com.google.common.base.Preconditions;
 import io.github.aparx.perx.database.Database;
-import io.github.aparx.perx.group.many.PerxUserGroupManager;
+import io.github.aparx.perx.group.union.controller.PerxUserGroupManager;
+import io.github.aparx.perx.user.PerxUser;
+import io.github.aparx.perx.user.UserCacheStrategy;
 import org.bukkit.OfflinePlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -42,7 +44,7 @@ public class PerxUserManager implements PerxUserController {
   }
 
   @Override
-  public CompletableFuture<@Nullable PerxUser> fetch(UUID uuid, UserCacheStrategy strategy) {
+  public CompletableFuture<PerxUser> fetchOrGet(UUID uuid, UserCacheStrategy strategy) {
     if (userMap.containsKey(uuid))
       return CompletableFuture.completedFuture(userMap.get(uuid));
     synchronized (lock) {
@@ -63,9 +65,9 @@ public class PerxUserManager implements PerxUserController {
     }
   }
 
-  public CompletableFuture<@Nullable PerxUser> fetch(
+  public CompletableFuture<PerxUser> fetchOrGet(
       OfflinePlayer player, UserCacheStrategy strategy) {
-    return fetch(player.getUniqueId(), strategy);
+    return fetchOrGet(player.getUniqueId(), strategy);
   }
 
   @Override

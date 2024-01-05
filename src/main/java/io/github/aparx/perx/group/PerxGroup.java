@@ -16,6 +16,7 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -29,12 +30,15 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
 
   private final String name;
   private final EnumMap<GroupStyleKey, @Nullable String> styles;
-  private final PermissionRegister permissions;
+  private final PerxPermissionRegister permissions;
+
+  /** Defines the default state of this group */
+  private boolean isDefault;
 
   /** The lower the priority, the less important this group is (the lower) */
   private int priority = DEFAULT_PRIORITY;
 
-  private PerxGroup(String name, PermissionRegister permissions) {
+  private PerxGroup(String name, PerxPermissionRegister permissions) {
     Preconditions.checkNotNull(name, "Name must not be null");
     Preconditions.checkNotNull(permissions, "Permissions must not be null");
     this.name = formatName(name);
@@ -46,14 +50,14 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return name.toLowerCase(Locale.ENGLISH);
   }
 
-  public static PerxGroup of(String name, PermissionRegister register) {
+  public static PerxGroup of(String name, PerxPermissionRegister register) {
     Validate.notEmpty(name, "Group name must not be empty");
     Validate.noNullElements(register, "Permission must not be null");
     return new PerxGroup(name, register);
   }
 
   public static PerxGroup of(String name, PermissionAdapter adapter) {
-    return of(name, new PermissionMap(adapter));
+    return of(name, new PerxPermissionMap(adapter));
   }
 
   public static PerxGroup of(String name) {
@@ -66,6 +70,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
         .prefix(model.getPrefix())
         .suffix(model.getSuffix())
         .priority(model.getPriority())
+        .isDefault(model.isDefault())
         .addPermissions(model.getPermissions())
         .build();
   }
@@ -73,6 +78,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   public static PerxGroup copyOf(PerxGroup group) {
     PerxGroup copy = of(group.name, group.permissions.copy());
     copy.setPriority(group.getPriority());
+    copy.setDefault(group.isDefault());
     copy.styles.putAll(group.styles);
     return copy;
   }
@@ -98,14 +104,27 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
         : permissions));
     groupModel.setPrefix(getStyle(GroupStyleKey.PREFIX));
     groupModel.setSuffix(getStyle(GroupStyleKey.SUFFIX));
+    groupModel.setDefault(isDefault());
     groupModel.setPriority(getPriority());
     return groupModel;
   }
 
+  public CompletableFuture<Dao.CreateOrUpdateStatus> push(boolean reinitializePlayers) {
+    return Perx.getInstance().getGroupController().upsert(this).thenApply((status) -> {
+      Perx.getLogger().log(Level.INFO, String.format(
+          "Successfully pushed group '%s' (default: %s)",
+          getName(), isDefault()));
+      if (reinitializePlayers) {
+        PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
+        Bukkit.getOnlinePlayers().forEach(groupHandler::reinitializePlayer);
+      }
+      return status;
+    });
+  }
+
   @Override
   public CompletableFuture<Dao.CreateOrUpdateStatus> push() {
-    // TODO through the push, force an update on all online players with this group
-    return Perx.getInstance().getGroupController().upsert(this);
+    return push(false);
   }
 
   @CanIgnoreReturnValue
@@ -123,7 +142,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return styles.get(key) != null;
   }
 
-  public PermissionRegister getPermissions() {
+  public PerxPermissionRegister getPermissions() {
     return permissions;
   }
 
@@ -135,12 +154,21 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     this.priority = priority;
   }
 
+  public boolean isDefault() {
+    return isDefault;
+  }
+
+  public void setDefault(boolean aDefault) {
+    isDefault = aDefault;
+  }
+
   @Override
   public String toString() {
-    return "PermissionGroup{" +
+    return "PerxGroup{" +
         "name='" + name + '\'' +
         ", styles=" + styles +
         ", permissions=" + permissions +
+        ", defaultValue=" + isDefault +
         ", priority=" + priority +
         '}';
   }
@@ -151,6 +179,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     if (object == null || getClass() != object.getClass()) return false;
     PerxGroup group = (PerxGroup) object;
     return priority == group.priority
+        && isDefault == group.isDefault
         && Objects.equals(name, group.name)
         && Objects.equals(styles, group.styles)
         && Objects.equals(permissions, group.permissions);

@@ -1,6 +1,8 @@
-package io.github.aparx.perx.user;
+package io.github.aparx.perx.user.controller;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import io.github.aparx.perx.user.PerxUser;
+import io.github.aparx.perx.user.UserCacheStrategy;
 import io.github.aparx.perx.utils.Copyable;
 import org.bukkit.OfflinePlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -21,10 +23,10 @@ import java.util.concurrent.CompletableFuture;
 public interface PerxUserController extends Copyable<PerxUserController> {
 
   /** Returns the already cached user or fetches user with given identifier. */
-  CompletableFuture<@Nullable PerxUser> fetch(UUID uuid, UserCacheStrategy strategy);
+  CompletableFuture<PerxUser> fetchOrGet(UUID uuid, UserCacheStrategy strategy);
 
   /** Returns the already cached user or fetches given player's user profile. */
-  CompletableFuture<@Nullable PerxUser> fetch(OfflinePlayer player, UserCacheStrategy strategy);
+  CompletableFuture<PerxUser> fetchOrGet(OfflinePlayer player, UserCacheStrategy strategy);
 
   CompletableFuture<Void> delete(UUID uuid);
 

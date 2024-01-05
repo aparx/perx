@@ -15,20 +15,20 @@ import java.util.*;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public class PermissionMap implements PermissionRegister {
+public class PerxPermissionMap implements PerxPermissionRegister {
 
   private final Map<String, PerxPermission> map = new HashMap<>();
 
   private final PermissionAdapter adapter;
 
-  public PermissionMap(PermissionAdapter adapter) {
+  public PerxPermissionMap(PermissionAdapter adapter) {
     Preconditions.checkNotNull(adapter, "Adapter must not be null");
     this.adapter = adapter;
   }
 
   @Override
-  public PermissionRegister copy() {
-    PermissionMap permissions = new PermissionMap(adapter);
+  public PerxPermissionRegister copy() {
+    PerxPermissionMap permissions = new PerxPermissionMap(adapter);
     permissions.map.putAll(map);
     return permissions;
   }

@@ -25,33 +25,37 @@ import java.util.Objects;
 @DefaultQualifier(NonNull.class)
 public class ScoreboardGroupStyleExecutor implements GroupStyleExecutor {
 
+  private static final String PERX_TEAM_IDENTIFIER = "::perx::";
+
   /** Removes all teams from all groups off the scoreboard */
   public void clear() {
-    Perx.getInstance().getGroupController().forEach((group) -> {
-      @Nullable Team team = getScoreboard().getTeam(getTeamName(group));
-      if (team != null) team.unregister();
+    getScoreboard().getTeams().forEach((team) -> {
+      if (team.getName().contains(PERX_TEAM_IDENTIFIER))
+        team.unregister();
     });
   }
 
   @Override
   @CanIgnoreReturnValue
+  @SuppressWarnings("deprecation")
   public boolean apply(PerxGroup group, Permissible permissible) {
     if (!(permissible instanceof Player player))
       return false;
     Team team = getOrCreateTeam(getScoreboard(), group);
     applyStyleToTeam(team, group); // update team style in case of change
-    if (!team.hasEntry(player.getName()))
-      team.addEntry(player.getName());
+    if (!team.hasPlayer(player))
+      team.addPlayer(player);
     return true;
   }
 
   @Override
   @CanIgnoreReturnValue
-  public boolean remove(PerxGroup group, Permissible permissible) {
+  @SuppressWarnings("deprecation")
+  public boolean reset(PerxGroup group, Permissible permissible) {
     if (!(permissible instanceof Player player))
       return false;
     @Nullable Team team = getScoreboard().getTeam(getTeamName(group));
-    if (team == null || !team.removeEntry(player.getName()))
+    if (team == null || !team.removePlayer(player))
       return false;
     if (team.getEntries().isEmpty())
       team.unregister();
@@ -79,6 +83,6 @@ public class ScoreboardGroupStyleExecutor implements GroupStyleExecutor {
   }
 
   protected String getTeamName(PerxGroup group) {
-    return group.getPriority() + "::perx::" + group.getName();
+    return group.getPriority() + PERX_TEAM_IDENTIFIER + group.getName();
   }
 }

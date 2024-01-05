@@ -4,7 +4,6 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import io.github.aparx.perx.database.data.DatabaseModel;
 import io.github.aparx.perx.database.data.group.GroupModel;
-import io.github.aparx.perx.group.many.PerxUserGroup;
 
 import java.util.Date;
 import java.util.UUID;

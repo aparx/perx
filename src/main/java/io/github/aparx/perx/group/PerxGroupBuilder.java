@@ -5,7 +5,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.permission.PermissionAdapter;
-import io.github.aparx.perx.permission.PermissionRegister;
+import io.github.aparx.perx.permission.PerxPermissionRegister;
 import org.apache.commons.lang3.ArrayUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -55,6 +55,12 @@ public class PerxGroupBuilder {
   }
 
   @CanIgnoreReturnValue
+  public PerxGroupBuilder isDefault(boolean isDefault) {
+    this.group.setDefault(isDefault);
+    return this;
+  }
+
+  @CanIgnoreReturnValue
   public PerxGroupBuilder priority(int priority) {
     this.group.setPriority(priority);
     return this;
@@ -80,7 +86,7 @@ public class PerxGroupBuilder {
   public PerxGroupBuilder addPermissions(String... permissions) {
     if (ArrayUtils.isEmpty(permissions))
       return this;
-    PermissionRegister handler = group.getPermissions();
+    PerxPermissionRegister handler = group.getPermissions();
     for (String permission : permissions)
       handler.register(permission);
     return this;

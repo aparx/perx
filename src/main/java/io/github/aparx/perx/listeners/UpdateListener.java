@@ -4,7 +4,6 @@ import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.events.GroupsFetchedEvent;
 import io.github.aparx.perx.user.UserCacheStrategy;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -22,8 +21,10 @@ import java.util.UUID;
 public final class UpdateListener implements Listener {
 
   @EventHandler
-  public void onLoad(GroupsFetchedEvent event) {
-    Bukkit.getOnlinePlayers().forEach(this::updatePlayer);
+  public void onLoad(GroupsFetchedEvent ignored) {
+    Bukkit.getOnlinePlayers().forEach((player) -> {
+      Perx.getInstance().getGroupHandler().reinitializePlayer(player);
+    });
   }
 
   @EventHandler(priority = EventPriority.MONITOR)
@@ -31,12 +32,12 @@ public final class UpdateListener implements Listener {
     if (event.getLoginResult() == AsyncPlayerPreLoginEvent.Result.ALLOWED)
       // fetch the user on login, so the user is fresh near join
       Perx.getInstance().getUserController()
-          .fetch(event.getUniqueId(), UserCacheStrategy.AUTO);
+          .fetchOrGet(event.getUniqueId(), UserCacheStrategy.AUTO);
   }
 
   @EventHandler(priority = EventPriority.MONITOR)
   public void onJoin(PlayerJoinEvent event) {
-    updatePlayer(event.getPlayer());
+    Perx.getInstance().getGroupHandler().reinitializePlayer(event.getPlayer());
   }
 
   @EventHandler(priority = EventPriority.MONITOR)
@@ -46,17 +47,6 @@ public final class UpdateListener implements Listener {
     // TODO: clear cache of offline people on interval instead
     Perx.getInstance().getUserController().remove(uuid);
     Perx.getInstance().getUserGroupController().removeByUser(uuid);
-  }
-
-  private void updatePlayer(Player player) {
-    Perx.getInstance().getUserController()
-        .fetch(player.getUniqueId(), UserCacheStrategy.AUTO)
-        .thenAccept((user) -> {
-          if (user != null)
-            user.getSubscribed().stream().sorted().forEach((x) -> {
-              Perx.getInstance().getGroupHandler().updateUserGroup(x);
-            });
-        });
   }
 
 
