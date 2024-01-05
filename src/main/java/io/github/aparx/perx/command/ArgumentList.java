@@ -20,22 +20,14 @@ public final class ArgumentList implements Iterable<CommandArgument> {
 
   public static final char ARGUMENT_SEPARATOR = ' ';
 
-  private static final ArgumentList EMPTY_LIST =
-      new ArgumentList(ArrayPath.of(), new CommandArgument[0], new Object());
-
-  private final transient Object mutex;
+  private static final ArgumentList EMPTY =
+      new ArgumentList(ArrayPath.of(), new CommandArgument[0]);
 
   private final ArrayPath args;
   private final @Nullable CommandArgument[] compiled;
 
   private ArgumentList(ArrayPath args, @Nullable CommandArgument[] compiled) {
-    this(args, compiled, new Object());
-  }
-
-  private ArgumentList(ArrayPath args, @Nullable CommandArgument[] compiled, Object mutex) {
-    Preconditions.checkNotNull(mutex);
     Preconditions.checkArgument(compiled.length == args.length(), "Length mismatch");
-    this.mutex = mutex;
     this.args = args;
     this.compiled = compiled;
   }
@@ -43,7 +35,7 @@ public final class ArgumentList implements Iterable<CommandArgument> {
   public static ArgumentList of(ArrayPath args) {
     if (!args.isEmpty())
       return new ArgumentList(args, new CommandArgument[args.length()]);
-    return EMPTY_LIST;
+    return EMPTY;
   }
 
   public static ArgumentList parse(String line) {
@@ -51,7 +43,7 @@ public final class ArgumentList implements Iterable<CommandArgument> {
   }
 
   public static ArgumentList of() {
-    return EMPTY_LIST;
+    return EMPTY;
   }
 
   public int length() {
@@ -70,7 +62,7 @@ public final class ArgumentList implements Iterable<CommandArgument> {
     Preconditions.checkElementIndex(index, compiled.length);
     @Nullable CommandArgument arg = compiled[index];
     if (arg != null) return arg;
-    synchronized (mutex) {
+    synchronized (this) {
       arg = compiled[index];
       if (arg != null) return arg;
       arg = new CommandArgument(args.get(index));
@@ -88,8 +80,7 @@ public final class ArgumentList implements Iterable<CommandArgument> {
     Preconditions.checkPositionIndex(toExclusiveIndex, length());
     return new ArgumentList(
         args.subpath(fromInclusiveIndex, toExclusiveIndex),
-        Arrays.copyOfRange(compiled, fromInclusiveIndex, toExclusiveIndex),
-        this.mutex);
+        Arrays.copyOfRange(compiled, fromInclusiveIndex, toExclusiveIndex));
   }
 
   public String join(int fromInclusiveIndex, char separator) {

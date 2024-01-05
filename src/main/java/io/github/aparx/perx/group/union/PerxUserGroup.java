@@ -22,7 +22,8 @@ import java.util.concurrent.CompletableFuture;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public class PerxUserGroup implements DatabaseConvertible<UserGroupModel> {
+public class PerxUserGroup implements DatabaseConvertible<UserGroupModel>,
+    Comparable<PerxUserGroup> {
 
   private static final long CACHE_ONLY_ID = -1;
 
@@ -64,6 +65,16 @@ public class PerxUserGroup implements DatabaseConvertible<UserGroupModel> {
 
   public static PerxUserGroup of(long id, UUID userId, PerxGroup group) {
     return new PerxUserGroup(id, userId, group);
+  }
+
+  public static int compare(PerxUserGroup a, PerxUserGroup b) {
+    @Nullable PerxGroup aGroup = a.findGroup();
+    @Nullable PerxGroup bGroup = b.findGroup();
+    if (aGroup == null)
+      return bGroup == null ? 0 : -1;
+    return (bGroup != null
+        ? PerxGroup.compare(aGroup, bGroup)
+        : 1);
   }
 
   /** Returns true if this group has a valid ID that matches a database model */
@@ -146,5 +157,10 @@ public class PerxUserGroup implements DatabaseConvertible<UserGroupModel> {
         ", groupName='" + groupName + '\'' +
         ", group=" + group.get() +
         '}';
+  }
+
+  @Override
+  public int compareTo(PerxUserGroup o) {
+    return compare(this, o);
   }
 }

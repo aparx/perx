@@ -69,9 +69,11 @@ public class MessageConfig extends ConfigHandle {
 
   private void putDefaultMessages() {
     DefaultMessagesBuilder.builder(this::createMessage)
-        .set(MessageKey.PREFIX, "&e[Perx] ")
-        .set(MessageKey.SUCCESS_PREFIX, "&a[Perx] ")
-        .set(MessageKey.ERROR_PREFIX, "&c[Perx] ")
+        .set(MessageKey.PREFIX, "&e[Perx]&r")
+        .set(MessageKey.SUCCESS_PREFIX, "&a[Perx]")
+        .set(MessageKey.ERROR_PREFIX, "&c[Perx]")
+        .set(MessageKey.JOIN, "&a&l+&r {player.displayName}&r joined the server!")
+        .set(MessageKey.QUIT, "&a&l+&r {player.displayName}&r has left the server!")
         .build(register);
   }
 

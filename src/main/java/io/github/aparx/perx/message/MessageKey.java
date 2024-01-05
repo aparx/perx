@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.utils.ArrayPath;
+import org.apache.commons.text.lookup.StringLookup;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
@@ -17,10 +18,13 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 @DefaultQualifier(NonNull.class)
 public enum MessageKey {
 
+  /* +----- prefix -----+ */
   PREFIX("prefix.default", "prefix"),
   SUCCESS_PREFIX("prefix.success"),
   ERROR_PREFIX("prefix.error"),
-  ;
+  /* +----- broadcast -----+ */
+  JOIN("broadcast.join"),
+  QUIT("broadcast.quit");
 
   private static final ImmutableMap<ArrayPath, MessageKey> byPath;
   private static final ImmutableMap<String, MessageKey> byReference;
@@ -70,6 +74,14 @@ public enum MessageKey {
 
   public LocalizedMessage get() {
     return get(Perx.getInstance().getMessages());
+  }
+
+  public String substitute(MessageRegister register, StringLookup lookup) {
+    return get(register).substitute(lookup);
+  }
+
+  public String substitute(StringLookup lookup) {
+    return substitute(Perx.getInstance().getMessages(), lookup);
   }
 
   @CanIgnoreReturnValue

@@ -14,6 +14,7 @@ import io.github.aparx.perx.group.style.GroupStyleExecutor;
 import io.github.aparx.perx.permission.PerxPermissionRegister;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.UserCacheStrategy;
+import io.github.aparx.perx.user.controller.PerxUserController;
 import io.github.aparx.perx.utils.BukkitThreads;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -21,7 +22,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import java.awt.print.PrinterException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Objects;
@@ -105,7 +105,8 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   }
 
   /**
-   * Applies {@code group}'s permissions and style to {@code player}.
+   * Applies {@code group}'s permissions to {@code player} and the style, if either player has no
+   * user within cache or if {@code group} is the highest group the player is subscribed to.
    *
    * @param player the player to apply the group to
    * @param group  the group that is supposed to be applied to {@code player}
@@ -115,7 +116,10 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
       PerxPermissionRegister register = group.getPermissions();
       register.getAdapter().clearPermissions(player);
       register.forEach((perm) -> perm.apply(player, true));
-      styleExecutor.apply(group, player);
+      PerxUserController userController = Perx.getInstance().getUserController();
+      @Nullable PerxUser user = userController.get(player);
+      if (user == null) styleExecutor.apply(group, player);
+      else applyHighestGroupStyle(user);
     });
   }
 
@@ -131,6 +135,15 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
             .filter(Objects::nonNull)
             .filter((x) -> x != group).sorted()
             .forEach((x) -> applyGroupToPlayer(player, x));
+    });
+  }
+
+  public void applyHighestGroupStyle(PerxUser user) {
+    @Nullable Player player = user.getPlayer();
+    Preconditions.checkNotNull(player, "Player is now offline");
+    user.getHighestUserGroup().ifPresent((userGroup) -> {
+      @Nullable PerxGroup group = userGroup.findGroup();
+      if (group != null) styleExecutor.apply(group, player);
     });
   }
 

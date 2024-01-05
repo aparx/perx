@@ -70,6 +70,16 @@ public class PerxUser implements Iterable<PerxUserGroup> {
     return subscribed.containsKey(groupName);
   }
 
+  /**
+   * Returns the user group whose group has the highest priority.
+   * <p>This is helpful to determine, what the display name of a player is going to be.
+   *
+   * @return an optional representing the concurrently highest group of this user
+   */
+  public Optional<PerxUserGroup> getHighestUserGroup() {
+    return getSubscribed().stream().max(PerxUserGroup::compare);
+  }
+
   public Collection<PerxUserGroup> getSubscribed() {
     return subscribed.values();
   }

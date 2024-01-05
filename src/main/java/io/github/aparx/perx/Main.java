@@ -9,9 +9,11 @@ import io.github.aparx.perx.group.PerxGroupHandler;
 import io.github.aparx.perx.group.style.ScoreboardGroupStyleExecutor;
 import io.github.aparx.perx.group.union.PerxUserGroup;
 import io.github.aparx.perx.user.UserCacheStrategy;
+import io.github.aparx.perx.utils.BukkitThreads;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,6 +21,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -39,28 +43,11 @@ public final class Main extends JavaPlugin implements Listener {
     (this.styleExecutor = new ScoreboardGroupStyleExecutor()).clear();
     if (!perx.load(this, database, styleExecutor))
       throw new IllegalStateException("Could not load Perx");
-    connectDatabase(database);
-    /*PerxGroupBuilder.builder("admin")
-        .priority(100)
-        .prefix("§7[§4Admin§7] §r")
-        .addPermissions("*")
-        .build()
-        .push();
-
-    PerxGroupBuilder.builder("mod")
-        .priority(10)
-        .prefix("§7[§aMod§7] §r")
-        .addPermissions("mod.publish.*")
-        .addPermissions("skywarz.setup")
-        .build()
-        .push();
-
-    PerxGroupBuilder.builder("user")
-        .priority(0)
-        .isDefault(true)
-        .prefix("§8[User] §r")
-        .build()
-        .push();*/
+    connectDatabase(database).exceptionally((ex) -> {
+      Perx.getLogger().log(Level.SEVERE, "Error with database (forgot setup?)", ex);
+      BukkitThreads.runOnPrimaryThread(() -> Bukkit.getPluginManager().disablePlugin(this));
+      return null;
+    });
   }
 
   @Override
@@ -71,20 +58,20 @@ public final class Main extends JavaPlugin implements Listener {
       throw new IllegalStateException("Could not unload Perx");
   }
 
-  private void connectDatabase(Database database) {
+  private CompletableFuture<?> connectDatabase(Database database) {
     ConfigManager configManager = Perx.getInstance().getConfigManager();
     DatabaseConfig config = configManager.getDatabaseConfig();
-    database.connect(config.getURL(), config.getUsername(), config.getPassword())
+    return database.connect(config.getURL(), config.getUsername(), config.getPassword())
         .thenRun(() -> Perx.getLogger().info("Finished loading database"));
   }
 
   @Deprecated
-  @EventHandler
+  @EventHandler(priority = EventPriority.HIGHEST)
   public void onJoin(PlayerJoinEvent event) {
     PerxGroupHandler handler = Perx.getInstance().getGroupHandler();
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(new Date());
-    calendar.add(Calendar.MINUTE, 1);
+    calendar.add(Calendar.SECOND, 3);
     handler.subscribe(event.getPlayer().getUniqueId(), "admin", calendar.getTime())
         .thenAccept((x) -> event.getPlayer().sendMessage(String.valueOf(x)));
     Bukkit.getScheduler().runTaskLater(Perx.getPlugin(), () -> {

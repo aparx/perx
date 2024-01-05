@@ -12,7 +12,7 @@ import io.github.aparx.perx.group.controller.PerxGroupController;
 import io.github.aparx.perx.group.PerxGroupHandler;
 import io.github.aparx.perx.group.controller.PerxGroupManager;
 import io.github.aparx.perx.group.style.GroupStyleExecutor;
-import io.github.aparx.perx.listeners.UpdateListener;
+import io.github.aparx.perx.listeners.DefaultListener;
 import io.github.aparx.perx.message.MessageMap;
 import io.github.aparx.perx.message.MessageRegister;
 import io.github.aparx.perx.user.PerxUser;
@@ -43,7 +43,7 @@ public final class Perx {
 
   private transient final Object lock = new Object();
 
-  private final List<Listener> listeners = List.of(new UpdateListener());
+  private final List<Listener> listeners = List.of(new DefaultListener());
   private final MessageRegister messages = new MessageMap();
 
   private volatile boolean loaded;

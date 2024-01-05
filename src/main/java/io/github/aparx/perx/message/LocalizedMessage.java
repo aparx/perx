@@ -121,6 +121,10 @@ public class LocalizedMessage {
     return extend(substitutor).replace(getMessage());
   }
 
+  public String substitute(LookupPopulator populator) {
+    return substitute(populator.getLookup());
+  }
+
   @Override
   public boolean equals(Object object) {
     if (this == object) return true;

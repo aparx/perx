@@ -83,12 +83,26 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return copy;
   }
 
+  public static int compare(PerxGroup a, PerxGroup b) {
+    return Integer.compare(a.priority, b.priority);
+  }
+
   public PerxGroup copy() {
     return copyOf(this);
   }
 
   public String getName() {
     return name;
+  }
+
+  public String createCustomName(String playerName) {
+    StringBuilder builder = new StringBuilder();
+    if (hasStyle(GroupStyleKey.PREFIX))
+      builder.append(getStyle(GroupStyleKey.PREFIX));
+    builder.append(playerName);
+    if (hasStyle(GroupStyleKey.SUFFIX))
+      builder.append(getStyle(GroupStyleKey.SUFFIX));
+    return builder.toString();
   }
 
   @Override
@@ -192,6 +206,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
 
   @Override
   public int compareTo(PerxGroup o) {
-    return Integer.compare(priority, o.priority);
+    return compare(this, o);
   }
+
 }

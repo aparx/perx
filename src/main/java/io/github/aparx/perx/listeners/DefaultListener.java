@@ -2,8 +2,12 @@ package io.github.aparx.perx.listeners;
 
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.events.GroupsFetchedEvent;
+import io.github.aparx.perx.message.LookupPopulator;
+import io.github.aparx.perx.message.MessageKey;
 import io.github.aparx.perx.user.UserCacheStrategy;
+import io.github.aparx.perx.utils.ArrayPath;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -18,7 +22,7 @@ import java.util.UUID;
  * @version 2024-01-04 11:42
  * @since 1.0
  */
-public final class UpdateListener implements Listener {
+public final class DefaultListener implements Listener {
 
   @EventHandler
   public void onLoad(GroupsFetchedEvent ignored) {
@@ -35,13 +39,27 @@ public final class UpdateListener implements Listener {
           .fetchOrGet(event.getUniqueId(), UserCacheStrategy.AUTO);
   }
 
-  @EventHandler(priority = EventPriority.MONITOR)
+  @EventHandler(priority = EventPriority.HIGH)
   public void onJoin(PlayerJoinEvent event) {
-    Perx.getInstance().getGroupHandler().reinitializePlayer(event.getPlayer());
+    Player player = event.getPlayer();
+    boolean cancelJoinMessage = event.getJoinMessage() == null;
+    event.setJoinMessage(null); // broadcast join message later
+    Perx.getInstance().getGroupHandler()
+        .reinitializePlayer(event.getPlayer())
+        .whenComplete((__, ex) -> {
+          if (ex == null && !cancelJoinMessage && player.isOnline())
+            Bukkit.broadcastMessage(MessageKey.JOIN.substitute(new LookupPopulator()
+                .populatePlayer(ArrayPath.of("player"), event.getPlayer())
+                .getLookup()));
+        });
   }
 
-  @EventHandler(priority = EventPriority.MONITOR)
+  @EventHandler(priority = EventPriority.HIGHEST)
   public void onQuit(PlayerQuitEvent event) {
+    if (event.getQuitMessage() != null)
+      event.setQuitMessage(MessageKey.QUIT.get().substitute(new LookupPopulator()
+          .populatePlayer(ArrayPath.of("player"), event.getPlayer())
+          .getLookup()));
     // remove the quitting player from cache
     UUID uuid = event.getPlayer().getUniqueId();
     // TODO: clear cache of offline people on interval instead
