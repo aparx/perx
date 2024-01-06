@@ -1,6 +1,7 @@
 package io.github.aparx.perx.user.controller;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.AbstractIterator;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.group.union.controller.PerxUserGroupManager;
 import io.github.aparx.perx.user.PerxUser;
@@ -11,6 +12,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -136,4 +138,19 @@ public class PerxUserManager implements PerxUserController {
     }
   }
 
+  @Override
+  public Iterator<PerxUser> iterator() {
+    synchronized (lock) {
+      Iterator<PerxUser> iterator = userMap.values().iterator();
+      return new AbstractIterator<>() {
+        @Nullable
+        @Override
+        protected PerxUser computeNext() {
+          if (!iterator.hasNext())
+            return endOfData();
+          return iterator.next();
+        }
+      };
+    }
+  }
 }

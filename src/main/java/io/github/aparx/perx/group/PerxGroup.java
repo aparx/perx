@@ -22,6 +22,7 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
@@ -104,6 +105,13 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   public void updatePlayers() {
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
     forPlayers((user, player) -> groupHandler.reinitializePlayer(player));
+  }
+
+  public void forSubscribers(Consumer<PerxUser> action) {
+    Perx.getInstance().getUserController().forEach((user) -> {
+      if (user.hasGroup(getName()))
+        action.accept(user);
+    });
   }
 
   public void forPlayers(BiConsumer<PerxUser, Player> action) {

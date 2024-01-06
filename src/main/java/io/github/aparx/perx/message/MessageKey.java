@@ -59,12 +59,15 @@ public enum MessageKey {
   GROUP_INFO("commands.group.info"),
   /* +----- command: group add <...> -----+ */
   GROUP_ADD_DUPLICATE("commands.group.add.error duplicate"),
-  GROUP_ADD_TOO_SHORT("commands.group.add.error duration too small"),
+  GROUP_ADD_TOO_SHORT("commands.group.add.error duration too short"),
   GROUP_ADD_FAIL("commands.group.add.error fail"),
   GROUP_ADD_SUCCESS("commands.group.add.success"),
   /* +----- command: group remove <...> -----+ */
   GROUP_REMOVE_FAIL("commands.group.remove.error fail"),
   GROUP_REMOVE_SUCCESS("commands.group.remove.success"),
+  /* +----- command: group purge <...> -----+ */
+  GROUP_PURGE_FAIL("commands.group.purge.error fail"),
+  GROUP_PURGE_SUCCESS("commands.group.purge.success"),
   ;
 
   private static final ImmutableMap<ArrayPath, MessageKey> byPath;

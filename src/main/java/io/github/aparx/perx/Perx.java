@@ -15,6 +15,7 @@ import io.github.aparx.perx.group.style.GroupStyleExecutor;
 import io.github.aparx.perx.listeners.DefaultListener;
 import io.github.aparx.perx.message.MessageMap;
 import io.github.aparx.perx.message.MessageRegister;
+import io.github.aparx.perx.sign.PerxSignManager;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.controller.PerxUserManager;
 import io.github.aparx.perx.user.controller.PerxUserController;
@@ -56,6 +57,7 @@ public final class Perx {
   private @Nullable PerxUserGroupManager userGroupController;
   private @Nullable PerxGroupUpdateTask groupUpdateTask;
   private @Nullable ConfigManager configManager;
+  private @Nullable PerxSignManager signManager;
   private Logger logger = Bukkit.getLogger();
 
   private Perx() {}
@@ -108,6 +110,10 @@ public final class Perx {
     return require(configManager, "ConfigManager is undefined");
   }
 
+  public PerxSignManager getSignManager() {
+    return require(signManager, "SignManager is undefined");
+  }
+
   public MessageRegister getMessages() {
     return messages;
   }
@@ -133,6 +139,7 @@ public final class Perx {
         this.userController = new PerxUserManager(database, userGroupController);
         this.groupHandler = new PerxGroupHandler(database, styleExecutor);
         (this.groupUpdateTask = new PerxGroupUpdateTask(plugin)).start();
+        (this.signManager = new PerxSignManager(plugin.getDataFolder())).load();
         return (this.loaded = true);
       } catch (Exception e) {
         logger.log(Level.SEVERE, "Severe error on load", e);

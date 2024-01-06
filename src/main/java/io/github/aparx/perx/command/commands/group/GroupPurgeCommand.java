@@ -1,7 +1,6 @@
 package io.github.aparx.perx.command.commands.group;
 
 import io.github.aparx.perx.Perx;
-import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.command.args.CommandArgumentList;
@@ -12,11 +11,8 @@ import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupHandler;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.MessageKey;
-import io.github.aparx.perx.user.PerxUser;
-import io.github.aparx.perx.user.controller.PerxUserController;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.text.lookup.StringLookup;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -30,38 +26,27 @@ import java.util.List;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public class GroupRemoveCommand extends AbstractGroupCommand {
+public class GroupPurgeCommand extends AbstractGroupCommand {
 
-  public GroupRemoveCommand(CommandNode parent) {
-    super(parent, CommandNodeInfo.builder("remove")
+  public GroupPurgeCommand(CommandNode parent) {
+    super(parent, CommandNodeInfo.builder("purge")
         .permission(PerxCommand.PERMISSION_MANAGE)
-        .description("Remove players to a group")
-        .usage("<Group> <Player>")
+        .description("Removes all players from a group")
+        .usage("<Group>")
         .build());
   }
 
   @Override
   protected void execute(CommandContext context, CommandArgumentList args, PerxGroup group) throws CommandError {
-    if (args.isEmpty()) throw createSyntaxError(context);
-    OfflinePlayer target = args.first().getOfflinePlayer();
-    PerxUserController userController = Perx.getInstance().getUserController();
-    @Nullable PerxUser user = userController.get(target);
-    LookupPopulator populator = new LookupPopulator()
-        .put(ArrayPath.of("group"), group)
-        .put(ArrayPath.of("target"), target);
-    CommandAssertion.checkTrue(user == null || user.hasGroup(group.getName()), (lang) -> {
-      return MessageKey.GENERIC_GROUP_NOT_SUBSCRIBED.substitute(lang, populator.getLookup());
-    });
+    if (!args.isEmpty()) throw createSyntaxError(context);
     CommandSender sender = context.sender();
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
     sender.sendMessage(MessageKey.GENERIC_LOADING.substitute());
-    groupHandler.unsubscribe(target.getUniqueId(), group.getName())
-        .exceptionally((__) -> false)
-        .thenAccept((res) -> {
-          StringLookup lookup = populator.getLookup();
-          if (res) sender.sendMessage(MessageKey.GROUP_REMOVE_SUCCESS.substitute(lookup));
-          else sender.sendMessage(MessageKey.GROUP_REMOVE_FAIL.substitute(lookup));
-        });
+    groupHandler.unsubscribe(group).exceptionally((__) -> false).thenAccept((res) -> {
+      StringLookup lp = new LookupPopulator().put(ArrayPath.of("group"), group).getLookup();
+      if (res) sender.sendMessage(MessageKey.GROUP_PURGE_SUCCESS.substitute(lp));
+      else sender.sendMessage(MessageKey.GROUP_PURGE_FAIL.substitute(lp));
+    });
   }
 
   @Override

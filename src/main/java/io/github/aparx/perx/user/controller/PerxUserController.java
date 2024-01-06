@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public interface PerxUserController extends Copyable<PerxUserController> {
+public interface PerxUserController extends Copyable<PerxUserController>, Iterable<PerxUser> {
 
   /** Returns the already cached user or fetches user with given identifier. */
   CompletableFuture<PerxUser> fetchOrGet(UUID uuid, UserCacheStrategy strategy);

@@ -118,6 +118,8 @@ public class MessageConfig extends ConfigHandle {
         .set(MessageKey.GROUP_ADD_SUCCESS, "{prefix.success} Added player &r{target.name}&a to group &r{group.name}&a for &7{duration}&a!")
         .set(MessageKey.GROUP_REMOVE_FAIL, "{prefix.error} Could not remove {target.name} from {group.name}!")
         .set(MessageKey.GROUP_REMOVE_SUCCESS, "{prefix.success} Removed player &r{target.name}&a from group &r{group.name}&a!")
+        .set(MessageKey.GROUP_PURGE_FAIL, "{prefix.error} Could not purge {group.name}!")
+        .set(MessageKey.GROUP_PURGE_SUCCESS, "{prefix.success} Successfully purged group &r{group.name}&a!")
         .build(register);
   }
 

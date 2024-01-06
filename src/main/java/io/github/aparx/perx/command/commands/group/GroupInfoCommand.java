@@ -25,7 +25,7 @@ public class GroupInfoCommand extends AbstractGroupCommand {
 
   public GroupInfoCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("info")
-        .permission(PerxCommand.PERMISSION_GROUP_MANAGE)
+        .permission(PerxCommand.PERMISSION_MANAGE)
         .description("Shows information about a group")
         .usage("<Group>")
         .build());

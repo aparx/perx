@@ -27,7 +27,7 @@ public class GroupDeleteCommand extends AbstractGroupCommand {
 
   public GroupDeleteCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("delete")
-        .permission(PerxCommand.PERMISSION_GROUP_MANAGE)
+        .permission(PerxCommand.PERMISSION_MANAGE)
         .usage("<Name>")
         .description("Delete an existing permissions group")
         .build());

@@ -3,6 +3,7 @@ package io.github.aparx.perx.config;
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.Perx;
+import io.github.aparx.perx.utils.FileUtils;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -57,7 +58,7 @@ public class PerxConfig implements Config {
 
   @Override
   public void load() {
-    createFileIfNotExists();
+    FileUtils.createFileIfNotExists(getFile());
     if (this.config == null)
       this.config = new YamlConfiguration();
     try {
@@ -75,18 +76,4 @@ public class PerxConfig implements Config {
     return config;
   }
 
-  @CanIgnoreReturnValue
-  public boolean createFileIfNotExists() {
-    if (file.exists()) return false;
-    @Nullable File parentFile = file.getParentFile();
-    if (parentFile != null && !parentFile.exists() && !parentFile.mkdirs())
-      throw new IllegalStateException("Could not create parent dirs");
-    try {
-      if (!file.createNewFile())
-        throw new IllegalStateException("Could not create file");
-      return true;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
 }

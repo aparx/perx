@@ -2,25 +2,16 @@ package io.github.aparx.perx.command.commands.group.update;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import io.github.aparx.perx.Magics;
 import io.github.aparx.perx.command.CommandAssertion;
-import io.github.aparx.perx.command.CommandContext;
-import io.github.aparx.perx.command.args.CommandArgument;
 import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.message.MessageKey;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.common.value.qual.IntRange;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -30,7 +21,7 @@ import java.util.stream.IntStream;
 public enum GroupUpdateField {
 
   PREFIX((group, list) -> {
-    int maxLength = Magics.MAXIMUM_GROUP_STYLE_LENGTH;
+    int maxLength = GroupStyleKey.PREFIX.getMaxLength();
     String value = list.join();
     CommandAssertion.checkTrue(value.length() <= maxLength,
         (reg) -> MessageKey.ERROR_PREFIX_TOO_LONG.substitute(Map.of("max", maxLength)));
@@ -38,7 +29,7 @@ public enum GroupUpdateField {
   }),
 
   SUFFIX((group, list) -> {
-    int maxLength = Magics.MAXIMUM_GROUP_STYLE_LENGTH;
+    int maxLength = GroupStyleKey.SUFFIX.getMaxLength();
     String value = list.join();
     CommandAssertion.checkTrue(value.length() <= maxLength,
         (reg) -> MessageKey.ERROR_SUFFIX_TOO_LONG.substitute(Map.of("max", maxLength)));

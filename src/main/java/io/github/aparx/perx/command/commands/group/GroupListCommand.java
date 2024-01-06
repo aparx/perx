@@ -32,7 +32,7 @@ public class GroupListCommand extends CommandNode {
 
   public GroupListCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("list")
-        .permission(PerxCommand.PERMISSION_GROUP_MANAGE)
+        .permission(PerxCommand.PERMISSION_MANAGE)
         .usage("(Page)")
         .description("Shows all groups")
         .build());

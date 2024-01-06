@@ -26,10 +26,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -47,7 +45,7 @@ public class GroupAddCommand extends AbstractGroupCommand {
 
   public GroupAddCommand(CommandNode parent, DurationProcessor processor) {
     super(parent, CommandNodeInfo.builder("add")
-        .permission(PerxCommand.PERMISSION_GROUP_MANAGE)
+        .permission(PerxCommand.PERMISSION_MANAGE)
         .description("Add players to a group (Duration example: 4d7m23s)")
         .usage("<Group> <Player> (Duration)")
         .build());

@@ -22,6 +22,7 @@ public class GroupCommand extends CommandNode {
     addChild(GroupSetCommand::new);
     addChild(GroupAddCommand::new);
     addChild(GroupRemoveCommand::new);
+    addChild(GroupPurgeCommand::new);
   }
 
 }

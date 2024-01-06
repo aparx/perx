@@ -15,6 +15,7 @@ import io.github.aparx.perx.database.data.many.UserGroupDao;
 import io.github.aparx.perx.database.data.many.UserGroupModel;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupHandler;
+import io.github.aparx.perx.group.controller.PerxGroupController;
 import io.github.aparx.perx.group.union.PerxUserGroup;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.controller.PerxUserController;
@@ -141,10 +142,8 @@ public class PerxUserGroupManager implements PerxUserGroupController {
 
   public CompletableFuture<Boolean> deleteByUser(UUID userId) {
     return getDao().deleteByUser(database, userId).thenApply((res) -> {
-      synchronized (this) {
-        if (res) removeByUser(userId);
-        return res;
-      }
+      if (res) removeByUser(userId);
+      return res;
     });
   }
 

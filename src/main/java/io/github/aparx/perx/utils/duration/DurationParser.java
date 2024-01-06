@@ -52,9 +52,10 @@ public final class DurationParser implements DurationProcessor {
       } else if (!Character.isWhitespace(ch)) {
         buffer.append(ch);
         @Nullable DurationUnit unit = getByLiteral(buffer.toString());
-        if (unit != null && previousNumber != 0) {
+        if (unit != null) {
           buffer = new StringBuilder();
-          unitMap.put(unit, previousNumber);
+          if (previousNumber != 0)
+            unitMap.put(unit, previousNumber);
           previousNumber = 0;
         }
       }

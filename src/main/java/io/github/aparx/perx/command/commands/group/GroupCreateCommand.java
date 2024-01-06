@@ -38,7 +38,7 @@ public class GroupCreateCommand extends CommandNode {
 
   public GroupCreateCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("create")
-        .permission(PerxCommand.PERMISSION_GROUP_MANAGE)
+        .permission(PerxCommand.PERMISSION_MANAGE)
         .usage("<Name> (Default <true:false>)")
         .description("Create a new empty permissions group")
         .build());

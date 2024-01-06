@@ -30,7 +30,7 @@ public class GroupSetCommand extends CommandNode {
 
   public GroupSetCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("set")
-        .permission(PerxCommand.PERMISSION_GROUP_MANAGE)
+        .permission(PerxCommand.PERMISSION_MANAGE)
         .build());
     for (GroupUpdateField field : GroupUpdateField.values())
       addChild(new GroupUpdateFieldCommand(field));
@@ -44,7 +44,7 @@ public class GroupSetCommand extends CommandNode {
           .usage("<Group> " + (!field.getSuggestions().isEmpty()
               ? String.format("(%s)", String.join(":", field.getSuggestions()))
               : "(Value)"))
-          .permission(PerxCommand.PERMISSION_GROUP_MANAGE)
+          .permission(PerxCommand.PERMISSION_MANAGE)
           .description(createDescription(field))
           .build());
       this.field = field;

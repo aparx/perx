@@ -31,7 +31,7 @@ public final class PerxGroupUpdateTask {
 
   public void start() {
     if (task != null) task.cancel();
-    task = Bukkit.getScheduler().runTaskTimer(plugin, this::perform, 20, 40);
+    task = Bukkit.getScheduler().runTaskTimer(plugin, this::perform, 20, 30);
   }
 
   public void stop() {
