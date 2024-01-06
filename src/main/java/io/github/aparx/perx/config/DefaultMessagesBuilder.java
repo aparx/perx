@@ -10,6 +10,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.function.Function;
 
@@ -72,6 +73,16 @@ public class DefaultMessagesBuilder {
   @CanIgnoreReturnValue
   public DefaultMessagesBuilder set(MessageKey key, String message) {
     return set(key, messageFactory.apply(message));
+  }
+
+  @CanIgnoreReturnValue
+  public DefaultMessagesBuilder set(ArrayPath path, Collection<String> message) {
+    return set(path, messageFactory.apply(LocalizedMessage.join(message)));
+  }
+
+  @CanIgnoreReturnValue
+  public DefaultMessagesBuilder set(MessageKey key, Collection<String> message) {
+    return set(key, messageFactory.apply(LocalizedMessage.join(message)));
   }
 
   public void build(MessageRegister register) {

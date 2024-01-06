@@ -3,6 +3,7 @@ package io.github.aparx.perx.command;
 import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.commands.GroupCommand;
 import io.github.aparx.perx.command.commands.HelpCommand;
+import io.github.aparx.perx.command.commands.InfoCommand;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
@@ -25,6 +26,8 @@ import java.util.List;
 public class PerxCommand implements CommandExecutor, TabCompleter {
 
   public static final String PERMISSION_GROUP_MANAGE = "perx.group.manage";
+  public static final String PERMISSION_INFO_SELF = "perx.info.self";
+  public static final String PERMISSION_INFO_OTHER = "perx.info.other";
 
   private static final PerxCommand instance = new PerxCommand();
 
@@ -32,6 +35,7 @@ public class PerxCommand implements CommandExecutor, TabCompleter {
 
   private PerxCommand() {
     root.addChild(HelpCommand::new);
+    root.addChild(InfoCommand::new);
     root.addChild(GroupCommand::new);
   }
 

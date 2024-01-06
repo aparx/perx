@@ -19,11 +19,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import java.awt.print.PrinterException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
@@ -43,7 +41,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   /** Defines the default state of this group */
   private boolean isDefault;
 
-  /** The lower the priority, the less important this group is (the lower) */
+  /** The lower the priority, the more important this group is */
   private int priority = DEFAULT_PRIORITY;
 
   private PerxGroup(String name, PerxPermissionRegister permissions) {
@@ -92,7 +90,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   }
 
   public static int compare(PerxGroup a, PerxGroup b) {
-    return Integer.compare(a.priority, b.priority);
+    return Integer.compare(b.priority, a.priority);
   }
 
   public PerxGroup copy() {
@@ -103,16 +101,12 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return name;
   }
 
-  public void updateForAllPlayers() {
-    Perx.getInstance().getGroupHandler().reinitializeAllPlayers();
-  }
-
-  public void updatePlayersInGroup() {
+  public void updatePlayers() {
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
-    forPlayersInGroup((user, player) -> groupHandler.reinitializePlayer(player));
+    forPlayers((user, player) -> groupHandler.reinitializePlayer(player));
   }
 
-  public void forPlayersInGroup(BiConsumer<PerxUser, Player> action) {
+  public void forPlayers(BiConsumer<PerxUser, Player> action) {
     BukkitThreads.runOnPrimaryThread(() -> {
       PerxUserController userController = Perx.getInstance().getUserController();
       Bukkit.getOnlinePlayers().forEach((player) -> {
@@ -174,9 +168,9 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   @CanIgnoreReturnValue
   public @Nullable String setStyle(GroupStyleKey key, @Nullable String value) {
     Preconditions.checkNotNull(key, "Key must not be null");
-    return styles.put(key, (value != null
-        ? ChatColor.translateAlternateColorCodes('&', value)
-        : null));
+    return (value != null
+        ? styles.put(key, ChatColor.translateAlternateColorCodes('&', value))
+        : styles.remove(key));
   }
 
   public @Nullable String getStyle(GroupStyleKey key) {

@@ -57,7 +57,7 @@ public class PerxPermission {
     return adapter;
   }
 
-  /** Returns the fully qualified name of this permission */
+  /** Returns the fully qualified name of this permissions */
   public String getName() {
     return name;
   }

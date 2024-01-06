@@ -25,7 +25,6 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -140,12 +139,8 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
       styleExecutor.reset(group, player);
       @Nullable PerxUser user = Perx.getInstance().getUserController().get(player);
       if (user != null)
-        // TODO temporary fix for https://github.com/aparx/perx/issues/2
-        user.getSubscribed().stream()
-            .map(PerxUserGroup::findGroup)
-            .filter(Objects::nonNull)
-            .filter((x) -> x != group).sorted()
-            .forEach((x) -> applyGroupToPlayer(player, x));
+        // Fix for https://github.com/aparx/perx/issues/2
+        applyHighestPossibleStyle(user);
     });
   }
 
@@ -181,7 +176,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   public CompletableFuture<Boolean> delete(PerxGroup group) {
     PerxGroupController groupController = Perx.getInstance().getGroupController();
     return groupController.delete(group.getName()).thenApply((res) -> {
-      group.updatePlayersInGroup();
+      group.updatePlayers();
       return res;
     });
   }
@@ -189,7 +184,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   @CanIgnoreReturnValue
   public CompletableFuture<Integer> update(PerxGroup group) {
     return Perx.getInstance().getGroupController().update(group).thenApply((res) -> {
-      group.updateForAllPlayers();
+      Perx.getInstance().getGroupHandler().reinitializeAllPlayers();
       return res;
     });
   }

@@ -11,11 +11,9 @@ import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupHandler;
 import io.github.aparx.perx.group.controller.PerxGroupController;
-import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.MessageKey;
 import io.github.aparx.perx.utils.ArrayPath;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.lookup.StringLookup;
 import org.bukkit.command.CommandSender;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -40,9 +38,9 @@ public class GroupCreateCommand extends CommandNode {
 
   public GroupCreateCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("create")
-        .require(PerxCommand.PERMISSION_GROUP_MANAGE)
+        .permission(PerxCommand.PERMISSION_GROUP_MANAGE)
         .usage("<Name> (Default <true:false>)")
-        .description("Create a new empty permission group")
+        .description("Create a new empty permissions group")
         .build());
   }
 

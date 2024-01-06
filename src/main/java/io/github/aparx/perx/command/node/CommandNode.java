@@ -3,6 +3,7 @@ package io.github.aparx.perx.command.node;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicates;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.args.CommandArgumentList;
@@ -12,6 +13,8 @@ import io.github.aparx.perx.command.errors.CommandSyntaxError;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permissible;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -22,6 +25,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -170,9 +174,9 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
 
   public boolean hasPermission(Permissible permissible) {
     CommandNodeInfo info = getInfo();
-    @Nullable String permission = info.permission();
-    if (info.hasPermission() && permission != null)
-      return permissible.hasPermission(permission);
+    ImmutableList<String> permissions = info.permissions();
+    if (info.hasPermission())
+      return permissions.stream().anyMatch(permissible::hasPermission);
     return true;
   }
 
@@ -238,13 +242,20 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
     return new CommandSyntaxError(context, this);
   }
 
-  protected List<String> tabCompleteChildren(
+  protected @Nullable List<String> tabCompleteChildren(
       CommandContext context, Predicate<CommandNode> nodeFilter) {
     return children.values().stream()
         .filter(nodeFilter)
         .filter((node) -> node.hasPermission(context.sender()))
         .map((node) -> node.getInfo().name())
         .collect(Collectors.toList());
+  }
+
+  protected List<String> tabCompletePlayers(CommandContext context) {
+    Stream<? extends Player> playerStream = Bukkit.getOnlinePlayers().stream();
+    if (context.isPlayer())
+      playerStream = playerStream.filter(context.getPlayer()::canSee);
+    return playerStream.map(Player::getName).collect(Collectors.toList());
   }
 
   @Override

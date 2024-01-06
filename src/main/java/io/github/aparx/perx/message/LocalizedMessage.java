@@ -2,9 +2,7 @@ package io.github.aparx.perx.message;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
-import com.google.errorprone.annotations.CheckReturnValue;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.commons.text.lookup.StringLookup;
 import org.apache.commons.text.lookup.StringLookupFactory;
@@ -13,8 +11,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -46,12 +46,24 @@ public class LocalizedMessage {
     this.defaultSubstitutor = (defaultLookup != null ? createSubstitutor(defaultLookup) : null);
   }
 
-  public static LocalizedMessage of(String message) {
-    return new LocalizedMessage(message);
-  }
-
   public static LocalizedMessage of(String message, @Nullable StringLookup defaultLookup) {
     return new LocalizedMessage(message, defaultLookup);
+  }
+
+  public static LocalizedMessage of(String message) {
+    return of(message, null);
+  }
+
+  public static LocalizedMessage of(Collection<?> lines, @Nullable StringLookup defaultLookup) {
+    return of(join(lines), defaultLookup);
+  }
+
+  public static LocalizedMessage of(Collection<?> lines) {
+    return of(lines, null);
+  }
+
+  public static String join(Collection<?> lines) {
+    return lines.stream().map(Objects::toString).collect(Collectors.joining("\n"));
   }
 
   private static StringSubstitutor createSubstitutor(StringLookup lookup) {
@@ -74,6 +86,10 @@ public class LocalizedMessage {
 
   public String getRawMessage() {
     return message;
+  }
+
+  public String[] toLines() {
+    return message.split("\n");
   }
 
   public LocalizedMessage withDefaultLookup(@Nullable StringLookup defaultLookup) {

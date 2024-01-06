@@ -69,7 +69,9 @@ public class HelpCommand extends CommandNode {
     List<CommandNode> displayingPage = pageContainer.getPage(pageIndex);
     String line = ChatColor.GRAY + "-".repeat(15) + ChatColor.YELLOW;
     StringBuilder builder = new StringBuilder();
-    builder.append(line)
+    builder.append(MessageKey.PREFIX.get().getMessage())
+        .append(' ')
+        .append(line)
         .append(" Perx help ")
         .append(1 + pageIndex)
         .append('/')
@@ -78,14 +80,18 @@ public class HelpCommand extends CommandNode {
         .append(line)
         .append('\n');
     displayingPage.forEach((node) -> {
-      builder.append(ChatColor.GRAY)
-          .append('+')
+      builder
+          .append(MessageKey.PREFIX.get().getMessage())
+          .append(ChatColor.GRAY)
+          .append(" •")
           .append(ChatColor.WHITE)
           .append(" /")
           .append(node.getFullUsage())
           .append('\n');
-      builder.append(ChatColor.DARK_GRAY)
-          .append("  ")
+      builder
+          .append(MessageKey.PREFIX.get().getMessage())
+          .append(ChatColor.GRAY)
+          .append("   ")
           .append(node.getInfo().description())
           .append('\n');
     });

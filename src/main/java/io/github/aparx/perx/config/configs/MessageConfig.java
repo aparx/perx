@@ -6,10 +6,14 @@ import io.github.aparx.perx.message.LocalizedMessage;
 import io.github.aparx.perx.message.MessageRegister;
 import io.github.aparx.perx.message.MessageKey;
 import io.github.aparx.perx.utils.ArrayPath;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.text.lookup.StringLookup;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -58,13 +62,18 @@ public class MessageConfig extends ConfigHandle {
     }
     // 2. fill config with missing messages
     register.forEach((path, message) -> {
-      config.setIfAbsent(path, message.getRawMessage());
+      String[] lines = message.toLines();
+      config.setIfAbsent(path, lines.length == 1 ? lines[0] : lines);
     });
     config.save();
   }
 
   private LocalizedMessage createMessage(Object message) {
-    return LocalizedMessage.of(Objects.toString(message, null), defaultLookup);
+    if (message instanceof Collection<?>)
+      return LocalizedMessage.of((Collection<?>) message, defaultLookup);
+    if (message != null && message.getClass().isArray())
+      return createMessage(Arrays.asList((Object[]) message));
+    return LocalizedMessage.of(Objects.toString(message, "null"), defaultLookup);
   }
 
   // @formatter:off
@@ -79,7 +88,7 @@ public class MessageConfig extends ConfigHandle {
         .set(MessageKey.GENERIC_GROUP_NOT_FOUND, "{prefix.error} Could not find group {name}!")
         .set(MessageKey.ERROR_SYNTAX, "{prefix.error} Syntax: /{fullUsage}")
         .set(MessageKey.ERROR_PLAYER, "{prefix.error} You need to be a player for this action!")
-        .set(MessageKey.ERROR_PERMISSION, "{prefix.error} Missing permission: {permission}")
+        .set(MessageKey.ERROR_PERMISSION, "{prefix.error} Missing permissions: {permissions}")
         .set(MessageKey.ERROR_NUMBER_RANGE, "{prefix.error} Number must be between {min} and {max}!")
         .set(MessageKey.ERROR_NAME_TOO_LONG, "{prefix.error} The name must be less than {max} characters!")
         .set(MessageKey.ERROR_PREFIX_TOO_LONG, "{prefix.error} The prefix must be less than {max} characters!")
@@ -96,6 +105,12 @@ public class MessageConfig extends ConfigHandle {
         .set(MessageKey.GROUP_UPDATE_SUFFIX, "{prefix} Updating suffix of &7{group.name}&r to {group.suffix}")
         .set(MessageKey.GROUP_UPDATE_PRIORITY, "{prefix} Updating priority of &7{group.name}&r to &7{group.priority}")
         .set(MessageKey.GROUP_UPDATE_DEFAULT, "{prefix} Updating default mode of &7{group.name}&r to &7{group.default}")
+        .set(MessageKey.GROUP_INFO, List.of(
+            "{prefix} Information about &e{group.name}&7:",
+            "{prefix} &8• &7Prefix:&r {group.prefix}&r",
+            "{prefix} &8• &7Suffix:&r {group.suffix}&r",
+            "{prefix} &8• &7Default:&r {group.default.color}{group.default}&r",
+            "{prefix} &8• &7Priority:&r {group.priority}&r"))
         .build(register);
   }
 

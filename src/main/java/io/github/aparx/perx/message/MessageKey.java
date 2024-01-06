@@ -33,7 +33,7 @@ public enum MessageKey {
   /* +----- errors -----+ */
   ERROR_PLAYER("errors.not a player"),
   ERROR_SYNTAX("errors.syntax", "syntax"),
-  ERROR_PERMISSION("errors.permission"),
+  ERROR_PERMISSION("errors.permissions"),
   ERROR_NUMBER_RANGE("errors.number range"),
   ERROR_NAME_TOO_LONG("errors.name too long"),
   ERROR_PREFIX_TOO_LONG("errors.prefix too long"),
@@ -53,6 +53,8 @@ public enum MessageKey {
   GROUP_UPDATE_DEFAULT("commands.group.update.default"),
   GROUP_UPDATE_FAIL("commands.group.update.fail"),
   GROUP_UPDATE_SUCCESS("commands.group.update.success"),
+  /* +----- command: group info <...> -----+ */
+  GROUP_INFO("commands.group.info"),
   ;
 
   private static final ImmutableMap<ArrayPath, MessageKey> byPath;

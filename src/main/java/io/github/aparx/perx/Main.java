@@ -38,7 +38,7 @@ public final class Main extends JavaPlugin implements Listener {
 
   @Override
   public void onEnable() {
-    //Bukkit.getPluginManager().registerEvents(this, this);
+    Bukkit.getPluginManager().registerEvents(this, this);
 
     Perx perx = Perx.getInstance();
     PerxDatabase database = new PerxDatabase();
@@ -81,7 +81,7 @@ public final class Main extends JavaPlugin implements Listener {
     PerxGroupHandler handler = Perx.getInstance().getGroupHandler();
     Calendar calendar = Calendar.getInstance();
     calendar.setTime(new Date());
-    calendar.add(Calendar.SECOND, 3);
+    calendar.add(Calendar.DAY_OF_MONTH, 3);
     handler.subscribe(event.getPlayer().getUniqueId(), "admin", calendar.getTime())
         .thenAccept((x) -> event.getPlayer().sendMessage(String.valueOf(x)));
     Bukkit.getScheduler().runTaskLater(Perx.getPlugin(), () -> {

@@ -19,7 +19,7 @@ public class CommandPermissionError extends CommandError {
 
   public CommandPermissionError(String permission) {
     this((register) -> MessageKey.ERROR_PERMISSION.substitute(new LookupPopulator()
-        .put(ArrayPath.of("permission"), permission)
+        .put(ArrayPath.of("permissions"), permission)
         .getLookup()));
   }
 

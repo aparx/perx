@@ -12,6 +12,7 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +25,8 @@ import java.util.concurrent.CompletableFuture;
 @DefaultQualifier(NonNull.class)
 public class PerxUserGroup implements DatabaseConvertible<UserGroupModel>,
     Comparable<PerxUserGroup> {
+
+  public static Comparator<PerxUserGroup> USER_GROUP_COMPARATOR = PerxUserGroup::compare;
 
   private static final long CACHE_ONLY_ID = -1;
 
@@ -72,9 +75,7 @@ public class PerxUserGroup implements DatabaseConvertible<UserGroupModel>,
     @Nullable PerxGroup bGroup = b.findGroup();
     if (aGroup == null)
       return bGroup == null ? 0 : -1;
-    return (bGroup != null
-        ? PerxGroup.compare(aGroup, bGroup)
-        : 1);
+    return (bGroup != null ? PerxGroup.compare(aGroup, bGroup) : 1);
   }
 
   /** Returns true if this group has a valid ID that matches a database model */

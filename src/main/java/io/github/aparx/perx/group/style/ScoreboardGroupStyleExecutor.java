@@ -7,7 +7,9 @@ import io.github.aparx.perx.command.commands.group.AbstractGroupCommand;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.style.GroupStyleExecutor;
 import io.github.aparx.perx.group.style.GroupStyleKey;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.scoreboard.*;
@@ -70,10 +72,8 @@ public class ScoreboardGroupStyleExecutor implements GroupStyleExecutor, Iterabl
   }
 
   public void applyStyleToTeam(Team team, PerxGroup group) {
-    if (group.hasStyle(GroupStyleKey.PREFIX))
-      team.setPrefix(Objects.requireNonNull(group.getStyle(GroupStyleKey.PREFIX)));
-    if (group.hasStyle(GroupStyleKey.SUFFIX))
-      team.setSuffix(Objects.requireNonNull(group.getStyle(GroupStyleKey.SUFFIX)));
+    team.setPrefix(Objects.toString(group.getStyle(GroupStyleKey.PREFIX), StringUtils.EMPTY));
+    team.setSuffix(Objects.toString(group.getStyle(GroupStyleKey.SUFFIX), StringUtils.EMPTY));
   }
 
   public Team getOrCreateTeam(Scoreboard scoreboard, PerxGroup group) {

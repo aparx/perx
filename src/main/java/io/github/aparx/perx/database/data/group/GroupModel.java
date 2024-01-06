@@ -21,7 +21,7 @@ public class GroupModel implements DatabaseModel<String> {
   @DatabaseField(id = true)
   private String id;
 
-  /** The lower the priority, the less important this group is */
+  /** The lower the priority, the more important this group is */
   @DatabaseField
   private int priority = PerxGroup.DEFAULT_PRIORITY;
 

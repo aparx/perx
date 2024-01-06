@@ -1,11 +1,14 @@
 package io.github.aparx.perx.command.node;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
+
+import java.util.List;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -15,7 +18,7 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 @DefaultQualifier(NonNull.class)
 public record CommandNodeInfo(
     String name,
-    @Nullable String permission,
+    ImmutableList<String> permissions,
     @Nullable String description,
     @Nullable String usage
 ) {
@@ -26,7 +29,7 @@ public record CommandNodeInfo(
   }
 
   public static CommandNodeInfo of(String name) {
-    return new CommandNodeInfo(name, null, null, null);
+    return new CommandNodeInfo(name, ImmutableList.of(), null, null);
   }
 
   public static CommandNodeInfoBuilder builder() {
@@ -38,7 +41,7 @@ public record CommandNodeInfo(
   }
 
   public boolean hasPermission() {
-    return StringUtils.isNotEmpty(permission);
+    return !permissions.isEmpty();
   }
 
   public boolean hasDescription() {

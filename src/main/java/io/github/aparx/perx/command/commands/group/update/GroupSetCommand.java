@@ -30,7 +30,7 @@ public class GroupSetCommand extends CommandNode {
 
   public GroupSetCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("set")
-        .require(PerxCommand.PERMISSION_GROUP_MANAGE)
+        .permission(PerxCommand.PERMISSION_GROUP_MANAGE)
         .build());
     for (GroupUpdateField field : GroupUpdateField.values())
       addChild(new GroupUpdateFieldCommand(field));
@@ -44,10 +44,18 @@ public class GroupSetCommand extends CommandNode {
           .usage("<Group> " + (!field.getSuggestions().isEmpty()
               ? String.format("(%s)", String.join(":", field.getSuggestions()))
               : "(Value)"))
-          .require(PerxCommand.PERMISSION_GROUP_MANAGE)
-          .description(String.format("Update the %s of a group", field.getName()))
+          .permission(PerxCommand.PERMISSION_GROUP_MANAGE)
+          .description(createDescription(field))
           .build());
       this.field = field;
+    }
+
+    private static String createDescription(GroupUpdateField field) {
+      return switch (field) {
+        case PRIORITY -> "Update the priority (the lower, the more important)";
+        case DEFAULT -> "Update the default mode (true so everybody has it)";
+        default -> String.format("Update the %s of a group", field.getName());
+      };
     }
 
     @Override
@@ -55,20 +63,18 @@ public class GroupSetCommand extends CommandNode {
       GroupUpdateField.FieldExecutor fieldExecutor = field.getFieldExecutor();
       fieldExecutor.execute(group, args);
       CommandSender sender = context.sender();
+      StringLookup lookup = new LookupPopulator()
+          .put(ArrayPath.of("context"), context)
+          .put(ArrayPath.of("group"), group, /*nil*/ "none")
+          .getLookup();
       sender.sendMessage((switch (field) {
         case PREFIX -> MessageKey.GROUP_UPDATE_PREFIX;
         case SUFFIX -> MessageKey.GROUP_UPDATE_SUFFIX;
         case PRIORITY -> MessageKey.GROUP_UPDATE_PRIORITY;
         case DEFAULT -> MessageKey.GROUP_UPDATE_DEFAULT;
-      }).substitute(new LookupPopulator()
-          .put(ArrayPath.of("group"), group)
-          .getLookup()));
+      }).substitute(lookup));
       group.update().exceptionally((__) -> 0).thenAccept((x) -> {
-        StringLookup lookup = new LookupPopulator()
-            .put(ArrayPath.of("context"), context)
-            .put(ArrayPath.of("group"), group, /*nil*/ "none")
-            .getLookup();
-        if (x == 0) sender.sendMessage(MessageKey.GROUP_UPDATE_FAIL.substitute(lookup));
+        if (x <= 0) sender.sendMessage(MessageKey.GROUP_UPDATE_FAIL.substitute(lookup));
         else sender.sendMessage(MessageKey.GROUP_UPDATE_SUCCESS.substitute(lookup));
       });
     }

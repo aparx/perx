@@ -21,17 +21,17 @@ public interface PerxPermissionRegister extends Iterable<PerxPermission>,
   /**
    * Returns an interface that handles the giving and revoking of permissions of permissibles.
    *
-   * @return the permission adapter
+   * @return the permissions adapter
    */
   PermissionAdapter getAdapter();
 
   int size();
 
   /**
-   * Returns the permission with given fully qualified name.
+   * Returns the permissions with given fully qualified name.
    *
-   * @param name the fully qualified name of the permission
-   * @return the permission instance
+   * @param name the fully qualified name of the permissions
+   * @return the permissions instance
    */
   @Nullable PerxPermission get(@NonNull String name);
 

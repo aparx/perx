@@ -1,7 +1,6 @@
 package io.github.aparx.perx.message;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Suppliers;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.command.CommandContext;
@@ -14,6 +13,7 @@ import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.controller.PerxUserController;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.text.lookup.StringLookup;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -139,9 +139,11 @@ public class LookupPopulator {
     put(prefix.add("name"), group.getName());
     put(prefix.add("priority"), String.valueOf(group.getPriority()));
     put(prefix.add("default"), String.valueOf(group.isDefault()));
+    put(prefix.add("default").add("color"), String.valueOf(
+        group.isDefault() ? ChatColor.GREEN : ChatColor.RED));
     for (GroupStyleKey key : GroupStyleKey.values()) {
       @Nullable String style = group.getStyle(key);
-      if (style != null) put(prefix.add(key.name().toLowerCase()), Objects.toString(style, nil));
+      put(prefix.add(key.name().toLowerCase()), Objects.toString(style, nil));
     }
     return this;
   }
@@ -166,7 +168,7 @@ public class LookupPopulator {
     put(prefix.add("name"), info.name());
     put(prefix.add("usage"), Objects.toString(info.usage(), nil));
     put(prefix.add("description"), Objects.toString(info.description(), nil));
-    put(prefix.add("permission"), Objects.toString(info.permission(), nil));
+    put(prefix.add("permissions"), String.join(", ", info.permissions()));
     return this;
   }
 
