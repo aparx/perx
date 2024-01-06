@@ -2,6 +2,7 @@ package io.github.aparx.perx.group;
 
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.j256.ormlite.dao.Dao;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.database.data.group.GroupModel;
@@ -80,11 +81,11 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   public CompletableFuture<Void> reinitializePlayer(Player player) {
     Collection<PerxGroup> defaults = Perx.getInstance().getGroupController().getDefaults();
     @Nullable PerxUser cached = Perx.getInstance().getUserController().get(player);
+    styleExecutor.resetAll(player);
     if (cached != null)
       // remove all only in cache living groups
       cached.getSubscribed().stream()
           .filter(Predicate.not(PerxUserGroup::isModelInDatabase))
-          .toList()
           .forEach(cached::removeGroup);
     return Perx.getInstance().getUserController()
         .fetchOrGet(player.getUniqueId(), UserCacheStrategy.AUTO)
@@ -92,6 +93,12 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
           subscribeInCache(user, defaults);
           updateUser(user);
         });
+  }
+
+  public void reinitializeAllPlayers() {
+    BukkitThreads.runOnPrimaryThread(() -> {
+      Bukkit.getOnlinePlayers().forEach(this::reinitializePlayer);
+    });
   }
 
   /**
@@ -113,18 +120,22 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
    */
   public void applyGroupToPlayer(Player player, PerxGroup group) {
     BukkitThreads.runOnPrimaryThread(() -> {
+      if (!player.isOnline()) return;
       PerxPermissionRegister register = group.getPermissions();
       register.getAdapter().clearPermissions(player);
       register.forEach((perm) -> perm.apply(player, true));
       PerxUserController userController = Perx.getInstance().getUserController();
       @Nullable PerxUser user = userController.get(player);
-      if (user == null) styleExecutor.apply(group, player);
-      else applyHighestGroupStyle(user);
+      if (user == null && group.hasStyle())
+        styleExecutor.apply(group, player);
+      else if (user != null)
+        applyHighestPossibleStyle(user);
     });
   }
 
   public void resetGroupFromPlayer(Player player, PerxGroup group) {
     BukkitThreads.runOnPrimaryThread(() -> {
+      if (!player.isOnline()) return;
       group.getPermissions().getAdapter().clearPermissions(player);
       styleExecutor.reset(group, player);
       @Nullable PerxUser user = Perx.getInstance().getUserController().get(player);
@@ -138,12 +149,48 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
     });
   }
 
-  public void applyHighestGroupStyle(PerxUser user) {
+  public void applyHighestPossibleStyle(PerxUser user) {
     @Nullable Player player = user.getPlayer();
     Preconditions.checkNotNull(player, "Player is now offline");
-    user.getHighestUserGroup().ifPresent((userGroup) -> {
-      @Nullable PerxGroup group = userGroup.findGroup();
-      if (group != null) styleExecutor.apply(group, player);
+    user.getHighestUserGroup((group) -> group.isGroupValid() && group.getGroup().hasStyle())
+        .ifPresent((userGroup) -> {
+          @Nullable PerxGroup group = userGroup.findGroup();
+          if (group != null) styleExecutor.apply(group, player);
+        });
+  }
+
+  @CanIgnoreReturnValue
+  public CompletableFuture<Dao.CreateOrUpdateStatus> upsert(PerxGroup group) {
+    PerxGroupController groupController = Perx.getInstance().getGroupController();
+    return groupController.upsert(group).thenApply((res) -> {
+      reinitializeAllPlayers();
+      return res;
+    });
+  }
+
+  @CanIgnoreReturnValue
+  public CompletableFuture<Boolean> create(PerxGroup group) {
+    PerxGroupController groupController = Perx.getInstance().getGroupController();
+    return groupController.create(group).thenApply((res) -> {
+      reinitializeAllPlayers();
+      return res;
+    });
+  }
+
+  @CanIgnoreReturnValue
+  public CompletableFuture<Boolean> delete(PerxGroup group) {
+    PerxGroupController groupController = Perx.getInstance().getGroupController();
+    return groupController.delete(group.getName()).thenApply((res) -> {
+      group.updatePlayersInGroup();
+      return res;
+    });
+  }
+
+  @CanIgnoreReturnValue
+  public CompletableFuture<Integer> update(PerxGroup group) {
+    return Perx.getInstance().getGroupController().update(group).thenApply((res) -> {
+      group.updateForAllPlayers();
+      return res;
     });
   }
 

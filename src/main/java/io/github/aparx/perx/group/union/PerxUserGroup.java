@@ -132,6 +132,17 @@ public class PerxUserGroup implements DatabaseConvertible<UserGroupModel>,
     return Perx.getInstance().getUserGroupController().upsert(this);
   }
 
+  @Override
+  public CompletableFuture<?> update() {
+    return Perx.getInstance().getUserGroupController().update(this);
+  }
+
+  @Override
+  public CompletableFuture<Boolean> delete() {
+    Preconditions.checkState(isModelInDatabase(), "Not a database model");
+    return Perx.getInstance().getUserGroupController().deleteById(getId());
+  }
+
   public void deleteRemovalMark() {
     synchronized (this) {
       removed = false;

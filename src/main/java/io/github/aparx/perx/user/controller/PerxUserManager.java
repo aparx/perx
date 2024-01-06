@@ -88,9 +88,9 @@ public class PerxUserManager implements PerxUserController {
   }
 
   @Override
-  public @Nullable PerxUser get(UUID uuid) {
+  public @Nullable PerxUser get(UUID userId) {
     synchronized (lock) {
-      return userMap.get(uuid);
+      return userMap.get(userId);
     }
   }
 

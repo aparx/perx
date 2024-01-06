@@ -85,7 +85,7 @@ public class PageContainerDecorator<E, P extends Collection<? super E>>
   public boolean addElement(@Nullable E element) {
     if (!elements.add(element))
       return false;
-    push0(Collections.singletonList(element));
+    push(Collections.singletonList(element));
     return true;
   }
 
@@ -93,12 +93,12 @@ public class PageContainerDecorator<E, P extends Collection<? super E>>
   public boolean addElements(Collection<E> elements) {
     if (!this.elements.addAll(elements))
       return false;
-    push0(elements);
+    push(elements);
     return true;
   }
 
   /** Pushes {@code elements} to the current stack of pages and may create new pages */
-  protected void push0(Collection<@Nullable E> elements) {
+  protected void push(Collection<@Nullable E> elements) {
     int maxPerPage = getMaxPerPage();
     for (E e : elements) {
       int pageIndex = container.size() - 1;

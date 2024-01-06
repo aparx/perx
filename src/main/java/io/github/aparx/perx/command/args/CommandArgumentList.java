@@ -19,8 +19,8 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
 
   public static final String ARGUMENT_SEPARATOR = " ";
 
-  private static final CommandArgumentList EMPTY = new CommandArgumentList(new String[0],
-      new CommandArgument[0]);
+  private static final CommandArgumentList EMPTY =
+      new CommandArgumentList(new String[0], new CommandArgument[0]);
 
   private final int hashCode;
   private final String[] args;
@@ -58,6 +58,10 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
     return args[index];
   }
 
+  public CommandArgument first() {
+    return get(0);
+  }
+
   public CommandArgument get(int index) {
     Preconditions.checkElementIndex(index, compiled.length);
     @Nullable CommandArgument arg = compiled[index];
@@ -71,6 +75,10 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
     }
   }
 
+  public CommandArgumentList skip() {
+    return isEmpty() ? this : sublist(1);
+  }
+
   public CommandArgumentList sublist(int fromInclusiveIndex) {
     return sublist(fromInclusiveIndex, length());
   }
@@ -78,19 +86,28 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
   public CommandArgumentList sublist(int fromInclusiveIndex, int toExclusiveIndex) {
     Preconditions.checkPositionIndex(fromInclusiveIndex, length());
     Preconditions.checkPositionIndex(toExclusiveIndex, length());
-    if (fromInclusiveIndex != length())
-      return new CommandArgumentList(
-          Arrays.copyOfRange(args, fromInclusiveIndex, toExclusiveIndex),
-          Arrays.copyOfRange(compiled, fromInclusiveIndex, toExclusiveIndex));
-    return CommandArgumentList.of();
+    return new CommandArgumentList(
+        Arrays.copyOfRange(args, fromInclusiveIndex, toExclusiveIndex),
+        Arrays.copyOfRange(compiled, fromInclusiveIndex, toExclusiveIndex));
   }
 
   public String join(int fromInclusiveIndex, CharSequence separator) {
-    return String.join(separator, Arrays.copyOfRange(args, fromInclusiveIndex, args.length));
+    if (fromInclusiveIndex == 0)
+      return String.join(separator, args);
+    StringBuilder builder = new StringBuilder();
+    for (String arg : args) {
+      if (!builder.isEmpty()) builder.append(separator);
+      builder.append(arg);
+    }
+    return builder.toString();
   }
 
   public String join(CharSequence separator) {
     return String.join(separator, args);
+  }
+
+  public String join(int fromInclusiveIndex) {
+    return join(fromInclusiveIndex, ARGUMENT_SEPARATOR);
   }
 
   public String join() {

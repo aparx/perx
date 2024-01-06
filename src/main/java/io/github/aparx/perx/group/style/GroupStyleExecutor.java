@@ -31,4 +31,7 @@ public interface GroupStyleExecutor {
   @CanIgnoreReturnValue
   boolean reset(PerxGroup group, Permissible permissible);
 
+  /** Removes all styles from given permissible */
+  void resetAll(Permissible permissible);
+
 }

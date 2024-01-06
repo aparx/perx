@@ -8,14 +8,22 @@ import io.github.aparx.perx.database.data.DatabaseConvertible;
 import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.permission.*;
+import io.github.aparx.perx.user.PerxUser;
+import io.github.aparx.perx.user.controller.PerxUserController;
+import io.github.aparx.perx.utils.BukkitThreads;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
+import java.awt.print.PrinterException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
@@ -95,6 +103,26 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return name;
   }
 
+  public void updateForAllPlayers() {
+    Perx.getInstance().getGroupHandler().reinitializeAllPlayers();
+  }
+
+  public void updatePlayersInGroup() {
+    PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
+    forPlayersInGroup((user, player) -> groupHandler.reinitializePlayer(player));
+  }
+
+  public void forPlayersInGroup(BiConsumer<PerxUser, Player> action) {
+    BukkitThreads.runOnPrimaryThread(() -> {
+      PerxUserController userController = Perx.getInstance().getUserController();
+      Bukkit.getOnlinePlayers().forEach((player) -> {
+        @Nullable PerxUser user = userController.get(player);
+        if (user == null || !user.hasGroup(getName())) return;
+        action.accept(user, player);
+      });
+    });
+  }
+
   public String createCustomName(String playerName) {
     StringBuilder builder = new StringBuilder();
     if (hasStyle(GroupStyleKey.PREFIX))
@@ -123,33 +151,41 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return groupModel;
   }
 
-  public CompletableFuture<Dao.CreateOrUpdateStatus> push(boolean reinitializePlayers) {
-    return Perx.getInstance().getGroupController().upsert(this).thenApply((status) -> {
+  @Override
+  public CompletableFuture<Dao.CreateOrUpdateStatus> push() {
+    return Perx.getInstance().getGroupHandler().upsert(this).thenApply((status) -> {
       Perx.getLogger().log(Level.INFO, String.format(
           "Successfully pushed group '%s' (default: %s)",
           getName(), isDefault()));
-      if (reinitializePlayers) {
-        PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
-        Bukkit.getOnlinePlayers().forEach(groupHandler::reinitializePlayer);
-      }
       return status;
     });
   }
 
   @Override
-  public CompletableFuture<Dao.CreateOrUpdateStatus> push() {
-    return push(false);
+  public CompletableFuture<Integer> update() {
+    return Perx.getInstance().getGroupHandler().update(this);
+  }
+
+  @Override
+  public CompletableFuture<Boolean> delete() {
+    return Perx.getInstance().getGroupHandler().delete(this);
   }
 
   @CanIgnoreReturnValue
   public @Nullable String setStyle(GroupStyleKey key, @Nullable String value) {
     Preconditions.checkNotNull(key, "Key must not be null");
-    return styles.put(key, value);
+    return styles.put(key, (value != null
+        ? ChatColor.translateAlternateColorCodes('&', value)
+        : null));
   }
 
   public @Nullable String getStyle(GroupStyleKey key) {
     Preconditions.checkNotNull(key, "Key must not be null");
     return styles.get(key);
+  }
+
+  public boolean hasStyle() {
+    return Arrays.stream(GroupStyleKey.values()).anyMatch(this::hasStyle);
   }
 
   public boolean hasStyle(GroupStyleKey key) {

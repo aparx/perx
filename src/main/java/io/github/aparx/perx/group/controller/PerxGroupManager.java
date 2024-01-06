@@ -7,10 +7,12 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import io.github.aparx.perx.Perx;
+import io.github.aparx.perx.command.args.CommandArgument;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.events.GroupsFetchedEvent;
 import io.github.aparx.perx.group.PerxGroup;
+import io.github.aparx.perx.group.style.GroupStyleKey;
 import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -79,46 +81,44 @@ public class PerxGroupManager implements PerxGroupController {
 
   @Override
   public CompletableFuture<Boolean> create(PerxGroup group) {
-    CompletableFuture<Boolean> future = new CompletableFuture<>();
-    database.executeAsync(() -> getDao().create(group.toModel()))
-        .thenApply((i) -> (i >= 1 && register(group)))
-        .whenComplete((status, ex) -> {
-          if (ex != null) future.completeExceptionally(ex);
-          else future.complete(status);
-        });
-    return future;
+    return database.executeAsync(() -> getDao().create(group.toModel()))
+        .thenApply((i) -> (i >= 1 && register(group)));
   }
 
   @Override
   public CompletableFuture<Dao.CreateOrUpdateStatus> upsert(PerxGroup group) {
-    CompletableFuture<Dao.CreateOrUpdateStatus> future = new CompletableFuture<>();
-    database.executeAsync(() -> getDao().createOrUpdate(group.toModel()))
+    return database.executeAsync(() -> getDao().createOrUpdate(group.toModel()))
         .thenApply((status) -> {
           // ensure `group` is registered
           groupMap.put(group.getName(), group);
           return status;
-        })
-        .whenComplete((status, ex) -> {
-          if (ex != null) future.completeExceptionally(ex);
-          else future.complete(status);
         });
-    return future;
+  }
+
+  @Override
+  public CompletableFuture<Integer> update(PerxGroup group) {
+    return database.executeAsync(() -> getDao().update(group.toModel()))
+        .thenApply((status) -> {
+          // TODO consider updating the already cached group!
+          groupMap.put(group.getName(), group);
+          return status;
+        });
   }
 
   @Override
   public CompletableFuture<Boolean> delete(String name) {
-    CompletableFuture<Boolean> future = new CompletableFuture<>();
-    database.executeAsync(() -> getDao().deleteById(name))
-        .thenApply((x) -> {
-          if (x < 1) return false;
-          remove(name);
-          return true;
+    return database.executeAsync(() -> getDao().deleteById(name))
+        .thenCompose((x) -> {
+          if (x < 1) return CompletableFuture.completedFuture(false);
+          return Perx.getInstance().getUserGroupController()
+              .deleteByGroup(name)
+              .thenApply((__) -> true)
+              .exceptionally((__) -> true);
         })
-        .whenComplete((val, ex) -> {
-          if (ex != null) future.completeExceptionally(ex);
-          else future.complete(val);
+        .thenApply((result) -> {
+          if (result) remove(name);
+          return result;
         });
-    return future;
   }
 
   @Override
@@ -138,7 +138,6 @@ public class PerxGroupManager implements PerxGroupController {
 
   @Override
   public @Nullable PerxGroup remove(String name) {
-    // TODO remove all user groups from groups with given name
     name = PerxGroup.formatName(name);
     @Nullable PerxGroup removed = groupMap.remove(name);
     if (removed == null) return null;

@@ -47,6 +47,9 @@ public interface PerxGroupController extends Iterable<PerxGroup>, Copyable<PerxG
   CompletableFuture<Dao.CreateOrUpdateStatus> upsert(PerxGroup group);
 
   @CanIgnoreReturnValue
+  CompletableFuture<Integer> update(PerxGroup group);
+
+  @CanIgnoreReturnValue
   CompletableFuture<Boolean> delete(String name);
 
   int size();

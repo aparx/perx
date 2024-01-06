@@ -55,7 +55,6 @@ public class HelpCommand extends CommandNode {
 
   @Override
   public void execute(CommandContext context, CommandArgumentList args) throws CommandError {
-    System.out.println(args);
     if (args.length() > 1)
       throw createSyntaxError(context);
     final int pageIndex = (!args.isEmpty() ? args.get(0).getInt() - 1 : 0);

@@ -17,4 +17,11 @@ public interface DatabaseConvertible<T extends DatabaseModel<?>> {
   @CanIgnoreReturnValue
   CompletableFuture<?> push();
 
+  /** Push updates this model to the database (performs an update only) */
+  @CanIgnoreReturnValue
+  CompletableFuture<?> update();
+
+  @CanIgnoreReturnValue
+  CompletableFuture<Boolean> delete();
+
 }

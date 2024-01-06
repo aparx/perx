@@ -10,6 +10,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
+import java.util.Map;
+
 /**
  * @author aparx (Vinzent Z.)
  * @version 2024-01-05 07:23
@@ -25,12 +27,33 @@ public enum MessageKey {
   /* +----- broadcast -----+ */
   JOIN("broadcast.join"),
   QUIT("broadcast.quit"),
+  /* +----- generic -----+ */
+  GENERIC_LOADING("generic.loading"),
+  GENERIC_GROUP_NOT_FOUND("generic.group not found"),
   /* +----- errors -----+ */
   ERROR_PLAYER("errors.not a player"),
   ERROR_SYNTAX("errors.syntax", "syntax"),
   ERROR_PERMISSION("errors.permission"),
   ERROR_NUMBER_RANGE("errors.number range"),
-  /* +----- commands -----+ */;
+  ERROR_NAME_TOO_LONG("errors.name too long"),
+  ERROR_PREFIX_TOO_LONG("errors.prefix too long"),
+  ERROR_SUFFIX_TOO_LONG("errors.suffix too long"),
+  /* +----- command: group create -----+ */
+  GROUP_CREATE_NAME("commands.group.create.error name"),
+  GROUP_CREATE_DUPLICATE("commands.group.create.error duplicate"),
+  GROUP_CREATE_FAIL("commands.group.create.error fail"),
+  GROUP_CREATE_SUCCESS("commands.group.create.success"),
+  /* +----- command: group delete -----+ */
+  GROUP_DELETE_FAIL("commands.group.delete.error fail"),
+  GROUP_DELETE_SUCCESS("commands.group.delete.success"),
+  /* +----- command: group set <...> -----+ */
+  GROUP_UPDATE_PREFIX("commands.group.update.prefix"),
+  GROUP_UPDATE_SUFFIX("commands.group.update.suffix"),
+  GROUP_UPDATE_PRIORITY("commands.group.update.priority"),
+  GROUP_UPDATE_DEFAULT("commands.group.update.default"),
+  GROUP_UPDATE_FAIL("commands.group.update.fail"),
+  GROUP_UPDATE_SUCCESS("commands.group.update.success"),
+  ;
 
   private static final ImmutableMap<ArrayPath, MessageKey> byPath;
   private static final ImmutableMap<String, MessageKey> byReference;
@@ -82,11 +105,27 @@ public enum MessageKey {
     return get(Perx.getInstance().getMessages());
   }
 
+  public String substitute(MessageRegister register) {
+    return get(register).substitute();
+  }
+
+  public String substitute() {
+    return substitute(Perx.getInstance().getMessages());
+  }
+
   public String substitute(MessageRegister register, StringLookup lookup) {
     return get(register).substitute(lookup);
   }
 
   public String substitute(StringLookup lookup) {
+    return substitute(Perx.getInstance().getMessages(), lookup);
+  }
+
+  public String substitute(MessageRegister register, Map<String, ?> lookup) {
+    return get(register).substitute(lookup);
+  }
+
+  public String substitute(Map<String, ?> lookup) {
     return substitute(Perx.getInstance().getMessages(), lookup);
   }
 

@@ -12,7 +12,6 @@ import io.github.aparx.perx.command.errors.CommandSyntaxError;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bukkit.command.CommandSender;
 import org.bukkit.permissions.Permissible;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -189,33 +188,21 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
    */
   @Override
   public void execute(CommandContext context, CommandArgumentList args) throws CommandError {
-    LeafLocateContext res = new LeafLocateContext(args);
-    locateLeaf(res, /*offset*/ 0);
-    if (res.last == null)
-      throw new CommandSyntaxError(context, null);
-    CommandNode target = res.last;
-    CommandSender sender = context.sender();
-    if (!hasPermission(sender))
-      throw createPermissionError();
-    if (!target.hasPermission(sender))
-      throw target.createPermissionError();
-    int subIndex = (target.getPathIndex() - getPathIndex());
-    target.execute(context, args.sublist(subIndex));
+    tryCascadeExecute(context, args); // cascades execution down to matching child(ren)
   }
 
   @Override
   public @Nullable List<String> tabComplete(CommandContext context, CommandArgumentList args) {
-    LeafLocateContext res = new LeafLocateContext(args);
-    @Nullable CommandNode leaf = locateLeaf(res, /*offset*/ 0);
-    CommandArgumentList totalArgs = context.arguments();
-    if (leaf != null)
-      return leaf.tabComplete(context, args.sublist(1));
-    int argsIndex = (res.last != null ? res.last.getPathIndex() : -1);
-    if (argsIndex >= 0 && totalArgs.length() == 1 + argsIndex)
-      return res.last.tabCompleteChildren(context, createNameFilterPredicate(
-          argsIndex < totalArgs.length() ? totalArgs.getString(argsIndex) : null
-      ));
-    return null;
+    if (!args.isEmpty()) {
+      @Nullable CommandNode child = getChild(args.getString(0));
+      @Nullable List<String> strings = (child != null
+          ? child.tabComplete(context, args.skip())
+          : null);
+      if (strings != null) return strings;
+    }
+    return tabCompleteChildren(context, createNameFilterPredicate(
+        !args.isEmpty() ? args.getString(0) : null
+    ));
   }
 
   @Override
@@ -230,6 +217,13 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
   @Override
   public int hashCode() {
     return Objects.hash(parent, info);
+  }
+
+  protected void tryCascadeExecute(CommandContext context, CommandArgumentList args) throws CommandError {
+    if (args.isEmpty()) throw createSyntaxError(context);
+    @Nullable CommandNode child = getChild(args.first().value());
+    if (child == null) throw createSyntaxError(context);
+    child.execute(context, args.skip());
   }
 
   protected CommandError createPermissionError() {
@@ -253,29 +247,9 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
         .collect(Collectors.toList());
   }
 
-  private @Nullable CommandNode locateLeaf(LeafLocateContext ctx, int offset) {
-    ctx.last = this;
-    if (ctx.args.isEmpty()) return null;
-    if (offset >= ctx.args.length()) return this;
-    @Nullable CommandNode child = getChild(ctx.args.getString(offset));
-    if (child != null) ctx.last = child;
-    @Nullable CommandNode leaf = (child != null ? child.locateLeaf(ctx, 1 + offset) : null);
-    if (leaf != null) ctx.last = leaf;
-    return leaf;
-  }
-
   @Override
   public Iterator<CommandNode> iterator() {
     return children.values().iterator();
   }
 
-  static class LeafLocateContext {
-    final CommandArgumentList args;
-    @Nullable CommandNode last;
-
-    LeafLocateContext(CommandArgumentList args) {
-      Preconditions.checkNotNull(args, "Args must not be null");
-      this.args = args;
-    }
-  }
 }

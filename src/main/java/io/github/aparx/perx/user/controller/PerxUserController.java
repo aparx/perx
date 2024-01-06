@@ -34,7 +34,7 @@ public interface PerxUserController extends Copyable<PerxUserController> {
 
   CompletableFuture<Void> delete(PerxUser user);
 
-  @Nullable PerxUser get(UUID uuid);
+  @Nullable PerxUser get(UUID userId);
 
   @Nullable PerxUser get(OfflinePlayer player);
 

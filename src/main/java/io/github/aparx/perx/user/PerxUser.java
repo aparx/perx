@@ -14,6 +14,7 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -78,6 +79,10 @@ public class PerxUser implements Iterable<PerxUserGroup> {
    */
   public Optional<PerxUserGroup> getHighestUserGroup() {
     return getSubscribed().stream().max(PerxUserGroup::compare);
+  }
+
+  public Optional<PerxUserGroup> getHighestUserGroup(Predicate<PerxUserGroup> filter) {
+    return getSubscribed().stream().filter(filter).max(PerxUserGroup::compare);
   }
 
   public Collection<PerxUserGroup> getSubscribed() {

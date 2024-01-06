@@ -2,6 +2,7 @@ package io.github.aparx.perx.database.data.many;
 
 import com.j256.ormlite.dao.BaseDaoImpl;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.PreparedQuery;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.support.ConnectionSource;
@@ -62,14 +63,18 @@ public class UserGroupDao extends BaseDaoImpl<UserGroupModel, Long> {
 
   public CompletableFuture<Boolean> deleteByGroup(Database database, String groupName) {
     return database.executeAsync(() -> {
-      return deleteBuilder().where().eq(UserGroupModel.GROUP_ID_FIELD_NAME, groupName).query();
-    }).thenApply((x) -> !x.isEmpty());
+      DeleteBuilder<UserGroupModel, Long> deleteBuilder = deleteBuilder();
+      deleteBuilder.where().eq(UserGroupModel.GROUP_ID_FIELD_NAME, groupName);
+      return deleteBuilder.delete();
+    }).thenApply((x) -> x > 0);
   }
 
   public CompletableFuture<Boolean> deleteByUser(Database database, UUID userId) {
     return database.executeAsync(() -> {
-      return deleteBuilder().where().eq(UserGroupModel.USER_ID_FIELD_NAME, userId).query();
-    }).thenApply((x) -> !x.isEmpty());
+      DeleteBuilder<UserGroupModel, Long> deleteBuilder = deleteBuilder();
+      deleteBuilder.where().eq(UserGroupModel.USER_ID_FIELD_NAME, userId);
+      return deleteBuilder.delete();
+    }).thenApply((x) -> x > 0);
   }
 
   protected PreparedQuery<UserGroupModel> createUserGroupsByUserQuery(UUID userId) throws SQLException {

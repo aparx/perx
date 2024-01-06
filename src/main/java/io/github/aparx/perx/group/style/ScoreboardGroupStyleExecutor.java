@@ -1,7 +1,9 @@
 package io.github.aparx.perx.group.style;
 
+import com.google.common.collect.AbstractIterator;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.Perx;
+import io.github.aparx.perx.command.commands.group.AbstractGroupCommand;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.style.GroupStyleExecutor;
 import io.github.aparx.perx.group.style.GroupStyleKey;
@@ -13,6 +15,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
+import java.util.Iterator;
 import java.util.Objects;
 
 /**
@@ -23,16 +26,13 @@ import java.util.Objects;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public class ScoreboardGroupStyleExecutor implements GroupStyleExecutor {
+public class ScoreboardGroupStyleExecutor implements GroupStyleExecutor, Iterable<Team> {
 
   private static final String PERX_TEAM_IDENTIFIER = "::perx::";
 
   /** Removes all teams from all groups off the scoreboard */
   public void clear() {
-    getScoreboard().getTeams().forEach((team) -> {
-      if (team.getName().contains(PERX_TEAM_IDENTIFIER))
-        team.unregister();
-    });
+    forEach(Team::unregister);
   }
 
   @Override
@@ -62,6 +62,13 @@ public class ScoreboardGroupStyleExecutor implements GroupStyleExecutor {
     return true;
   }
 
+  @Override
+  @SuppressWarnings("deprecation")
+  public void resetAll(Permissible permissible) {
+    if (!(permissible instanceof Player player)) return;
+    forEach((team) -> team.removePlayer(player));
+  }
+
   public void applyStyleToTeam(Team team, PerxGroup group) {
     if (group.hasStyle(GroupStyleKey.PREFIX))
       team.setPrefix(Objects.requireNonNull(group.getStyle(GroupStyleKey.PREFIX)));
@@ -84,5 +91,23 @@ public class ScoreboardGroupStyleExecutor implements GroupStyleExecutor {
 
   protected String getTeamName(PerxGroup group) {
     return group.getPriority() + PERX_TEAM_IDENTIFIER + group.getName();
+  }
+
+  @Override
+  public Iterator<Team> iterator() {
+    Iterator<Team> iterator = getScoreboard().getTeams().iterator();
+    return new AbstractIterator<>() {
+      @Nullable
+      @Override
+      protected Team computeNext() {
+        if (!iterator.hasNext())
+          return endOfData();
+        @Nullable Team next = iterator.next();
+        if (!next.getName().contains(PERX_TEAM_IDENTIFIER))
+          next = computeNext();
+        if (next == null) endOfData(); // ensure
+        return next;
+      }
+    };
   }
 }

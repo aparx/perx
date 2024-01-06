@@ -14,8 +14,12 @@ import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.database.data.many.UserGroupDao;
 import io.github.aparx.perx.database.data.many.UserGroupModel;
 import io.github.aparx.perx.group.PerxGroup;
+import io.github.aparx.perx.group.PerxGroupHandler;
 import io.github.aparx.perx.group.union.PerxUserGroup;
 import io.github.aparx.perx.user.PerxUser;
+import io.github.aparx.perx.user.controller.PerxUserController;
+import io.github.aparx.perx.utils.BukkitThreads;
+import org.bukkit.Bukkit;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
@@ -166,43 +170,50 @@ public class PerxUserGroupManager implements PerxUserGroupController {
   public boolean register(PerxUserGroup userGroup) {
     @Nullable PerxGroup group = userGroup.findGroup();
     if (group == null) return false;
-    byUser.put(userGroup.getUserId(), userGroup);
-    byId.put(userGroup.getId(), userGroup);
-    byGroup.put(group.getName(), userGroup);
+    BukkitThreads.runOnPrimaryThread(() -> {
+      byUser.put(userGroup.getUserId(), userGroup);
+      byId.put(userGroup.getId(), userGroup);
+      byGroup.put(group.getName(), userGroup);
+    });
     return true;
   }
 
   @Override
   public void removeByUser(UUID userId) {
-    byUser.get(userId).forEach((userGroup) -> {
-      @Nullable PerxGroup group = userGroup.findGroup();
-      if (group != null)
-        byGroup.remove(group.getName(), userGroup);
-      byId.remove(userGroup.getId());
+    BukkitThreads.runOnPrimaryThread(() -> {
+      byUser.get(userId).forEach((userGroup) -> {
+        @Nullable PerxGroup group = userGroup.findGroup();
+        if (group != null)
+          byGroup.remove(group.getName(), userGroup);
+        byId.remove(userGroup.getId());
+      });
+      byUser.removeAll(userId);
     });
-    byUser.removeAll(userId);
   }
 
   @Override
   public void removeByGroup(String groupName) {
-    groupName = PerxGroup.formatName(groupName);
-    byGroup.get(groupName).forEach((userGroup) -> {
-      userGroup.markRemoved();
-      byUser.remove(userGroup.getUserId(), userGroup);
-      byId.remove(userGroup.getId());
+    final String group = PerxGroup.formatName(groupName);
+    BukkitThreads.runOnPrimaryThread(() -> {
+      byGroup.get(group).forEach((userGroup) -> {
+        userGroup.markRemoved();
+        byUser.remove(userGroup.getUserId(), userGroup);
+        byId.remove(userGroup.getId());
+      });
+      byGroup.removeAll(group);
     });
-    byGroup.removeAll(groupName);
   }
 
   @Override
-  public boolean removeById(long id) {
-    @Nullable PerxUserGroup userGroup = byId.get(id);
-    if (userGroup == null) return false;
-    byUser.remove(userGroup.getUserId(), userGroup);
-    @Nullable PerxGroup group = userGroup.findGroup();
-    if (group != null) byGroup.remove(group.getName(), userGroup);
-    byId.remove(id);
-    return true;
+  public void removeById(long id) {
+    BukkitThreads.runOnPrimaryThread(() -> {
+      @Nullable PerxUserGroup userGroup = byId.get(id);
+      if (userGroup == null) return;
+      byUser.remove(userGroup.getUserId(), userGroup);
+      @Nullable PerxGroup group = userGroup.findGroup();
+      if (group != null) byGroup.remove(group.getName(), userGroup);
+      byId.remove(id);
+    });
   }
 
   public CompletableFuture<Dao.CreateOrUpdateStatus> upsert(UserGroupModel userGroupModel) {
@@ -211,6 +222,14 @@ public class PerxUserGroupManager implements PerxUserGroupController {
 
   public CompletableFuture<Dao.CreateOrUpdateStatus> upsert(PerxUserGroup userGroup) {
     return upsert(userGroup.toModel());
+  }
+
+  public CompletableFuture<Integer> update(UserGroupModel userGroupModel) {
+    return database.executeAsync(() -> getDao().update(userGroupModel));
+  }
+
+  public CompletableFuture<Integer> update(PerxUserGroup userGroup) {
+    return update(userGroup.toModel());
   }
 
   public CompletableFuture<Integer> create(UserGroupModel userGroupModel) {

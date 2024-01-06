@@ -64,7 +64,6 @@ public interface PerxUserGroupController extends PerxModelController<UserGroupDa
   void removeByGroup(String groupName);
 
   /** Removes the user group associated to given ID (just in cache) */
-  @CanIgnoreReturnValue
-  boolean removeById(long id);
+  void removeById(long id);
 
 }
