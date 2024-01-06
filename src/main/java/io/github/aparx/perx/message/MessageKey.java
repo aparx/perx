@@ -24,7 +24,13 @@ public enum MessageKey {
   ERROR_PREFIX("prefix.error"),
   /* +----- broadcast -----+ */
   JOIN("broadcast.join"),
-  QUIT("broadcast.quit");
+  QUIT("broadcast.quit"),
+  /* +----- errors -----+ */
+  ERROR_PLAYER("errors.not a player"),
+  ERROR_SYNTAX("errors.syntax", "syntax"),
+  ERROR_PERMISSION("errors.permission"),
+  ERROR_NUMBER_RANGE("errors.number range"),
+  /* +----- commands -----+ */;
 
   private static final ImmutableMap<ArrayPath, MessageKey> byPath;
   private static final ImmutableMap<String, MessageKey> byReference;

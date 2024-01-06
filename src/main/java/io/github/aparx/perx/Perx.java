@@ -148,8 +148,6 @@ public final class Perx {
     synchronized (lock) {
       if (!loaded) return false;
       try {
-        this.plugin = null;
-        listeners.forEach(HandlerList::unregisterAll);
         if (groupUpdateTask != null)
           groupUpdateTask.stop();
         if (groupHandler != null && userController != null)
@@ -162,8 +160,10 @@ public final class Perx {
               if (group != null) groupHandler.resetGroupFromPlayer(player, group);
             }
           });
+        this.plugin = null;
       } finally {
         loaded = false;
+        listeners.forEach(HandlerList::unregisterAll);
       }
       return true;
     }

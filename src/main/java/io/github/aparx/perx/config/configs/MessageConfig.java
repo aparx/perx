@@ -73,7 +73,11 @@ public class MessageConfig extends ConfigHandle {
         .set(MessageKey.SUCCESS_PREFIX, "&a[Perx]")
         .set(MessageKey.ERROR_PREFIX, "&c[Perx]")
         .set(MessageKey.JOIN, "&a&l+&r {player.displayName}&r joined the server!")
-        .set(MessageKey.QUIT, "&a&l+&r {player.displayName}&r has left the server!")
+        .set(MessageKey.QUIT, "&c&l-&r {player.displayName}&r has left the server!")
+        .set(MessageKey.ERROR_SYNTAX, "{prefix.error} Syntax: {fullUsage}")
+        .set(MessageKey.ERROR_PLAYER, "{prefix.error} You need to be a player for this action!")
+        .set(MessageKey.ERROR_PERMISSION, "{prefix.error} Missing permission: {permission}")
+        .set(MessageKey.ERROR_NUMBER_RANGE, "{prefix.error} Number must be between {min} and {max}!")
         .build(register);
   }
 

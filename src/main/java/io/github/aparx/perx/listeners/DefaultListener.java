@@ -49,7 +49,7 @@ public final class DefaultListener implements Listener {
         .whenComplete((__, ex) -> {
           if (ex == null && !cancelJoinMessage && player.isOnline())
             Bukkit.broadcastMessage(MessageKey.JOIN.substitute(new LookupPopulator()
-                .populatePlayer(ArrayPath.of("player"), event.getPlayer())
+                .put(ArrayPath.of("player"), event.getPlayer())
                 .getLookup()));
         });
   }
@@ -58,7 +58,7 @@ public final class DefaultListener implements Listener {
   public void onQuit(PlayerQuitEvent event) {
     if (event.getQuitMessage() != null)
       event.setQuitMessage(MessageKey.QUIT.get().substitute(new LookupPopulator()
-          .populatePlayer(ArrayPath.of("player"), event.getPlayer())
+          .put(ArrayPath.of("player"), event.getPlayer())
           .getLookup()));
     // remove the quitting player from cache
     UUID uuid = event.getPlayer().getUniqueId();

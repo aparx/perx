@@ -1,5 +1,7 @@
 package io.github.aparx.perx;
 
+import com.google.common.base.Preconditions;
+import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.config.ConfigManager;
 import io.github.aparx.perx.config.configs.DatabaseConfig;
 import io.github.aparx.perx.database.Database;
@@ -11,6 +13,7 @@ import io.github.aparx.perx.group.union.PerxUserGroup;
 import io.github.aparx.perx.user.UserCacheStrategy;
 import io.github.aparx.perx.utils.BukkitThreads;
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -48,6 +51,13 @@ public final class Main extends JavaPlugin implements Listener {
       BukkitThreads.runOnPrimaryThread(() -> Bukkit.getPluginManager().disablePlugin(this));
       return null;
     });
+    // next register the command
+    PerxCommand perxCommand = PerxCommand.getInstance();
+    String commandName = perxCommand.getRoot().getInfo().name();
+    PluginCommand command = getCommand(commandName);
+    Preconditions.checkNotNull(command, "Command " + commandName + " unknown");
+    command.setTabCompleter(PerxCommand.getInstance());
+    command.setExecutor(PerxCommand.getInstance());
   }
 
   @Override
