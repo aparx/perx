@@ -32,18 +32,16 @@ public abstract class AbstractGroupCommand extends CommandNode {
   }
 
   protected void execute(CommandContext context, CommandArgumentList args, PerxGroup group) throws CommandError {
-    tryCascadeExecute(context, args);
+    tryCascadeExecute(context, args); // cascades execution down to matching child(ren)
   }
 
   @Override
   public final void execute(CommandContext context, CommandArgumentList args) throws CommandError {
     if (args.isEmpty())
       throw createSyntaxError(context);
-    String name = args.getString(0);
-    PerxGroupController groupController = Perx.getInstance().getGroupController();
-    @Nullable PerxGroup perxGroup = groupController.get(name);
-    CommandAssertion.checkTrue(perxGroup != null,
-        (lang) -> MessageKey.GENERIC_GROUP_NOT_FOUND.substitute(lang, Map.of("name", name)));
+    @Nullable PerxGroup perxGroup = args.first().getGroup();
+    CommandAssertion.checkTrue(perxGroup != null, (lang) ->
+        MessageKey.GENERIC_GROUP_NOT_FOUND.substitute(lang, Map.of("name", args.first().value())));
     execute(context, args.skip(), perxGroup);
   }
 

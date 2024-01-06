@@ -14,6 +14,7 @@ import io.github.aparx.perx.message.MessageKey;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.UserCacheStrategy;
 import io.github.aparx.perx.user.controller.PerxUserController;
+import io.github.aparx.perx.utils.duration.DurationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -39,19 +40,6 @@ public class InfoCommand extends CommandNode {
         .permission(PerxCommand.PERMISSION_INFO_OTHER)
         .usage("<Player>")
         .build());
-  }
-
-  private static String createTimeLeft(Duration duration) {
-    long days = duration.toDays();
-    long hours = (duration.toHours() % 24);
-    long minutes = (duration.toMinutes() % 60);
-    long seconds = (duration.toSeconds() % 60);
-    List<String> units = new ArrayList<>();
-    if (days > 0) units.add(days + "d");
-    if (hours > 0) units.add(hours + "h");
-    if (minutes > 0) units.add(minutes + "m");
-    if (seconds > 0) units.add(seconds + "s");
-    return String.join(StringUtils.SPACE, units);
   }
 
   @Override
@@ -105,9 +93,9 @@ public class InfoCommand extends CommandNode {
         .append(' ');
     @Nullable Date endingDate = userGroup.getEndingDate();
     if (endingDate != null) {
-      builder.append(ChatColor.YELLOW).append('[').append(createTimeLeft(
-          Duration.ofMillis(Math.max(endingDate.getTime() - System.currentTimeMillis(), 0))
-      )).append(']');
+      builder.append(ChatColor.YELLOW).append('[')
+          .append(DurationUtils.createTimeLeft(new Date(), endingDate))
+          .append(']');
     } else
       builder.append(ChatColor.DARK_GRAY).append("permanent");
     if (!userGroup.isModelInDatabase())

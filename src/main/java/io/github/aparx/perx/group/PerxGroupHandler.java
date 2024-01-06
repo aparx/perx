@@ -3,6 +3,7 @@ package io.github.aparx.perx.group;
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.DeleteBuilder;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.database.data.group.GroupModel;
@@ -25,6 +26,7 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -206,26 +208,26 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
 
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> unsubscribe(UUID userId, String groupName) {
-    return Perx.getInstance().getUserGroupController()
-        .find(userId, groupName)
-        .map(this::unsubscribe)
-        .orElseGet(() -> CompletableFuture.completedFuture(false));
+    return unsubscribe(userId, Perx.getInstance().getGroupController().getLoudly(groupName));
   }
 
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> unsubscribe(UUID userId, PerxGroup group) {
     PerxUserGroupManager userGroupController = Perx.getInstance().getUserGroupController();
     return fetchUserToPerform(userId, (user) -> database
-        .executeAsync(() -> userGroupController.getDao()
-            .deleteBuilder().limit(1L).where()
-            // unique combo index should force O(1) in engine's register
-            .eq(UserGroupModel.USER_ID_FIELD_NAME, user)
-            .eq(UserGroupModel.GROUP_ID_FIELD_NAME, group.getName())
-            .query())
+        .executeAsync(() -> {
+          DeleteBuilder<UserGroupModel, Long> deleteBuilder =
+              userGroupController.getDao().deleteBuilder();
+          deleteBuilder.limit(1L).where()
+              // unique combo index should force O(1) in engine's register
+              .eq(UserGroupModel.USER_ID_FIELD_NAME, user.getId()).and()
+              .eq(UserGroupModel.GROUP_ID_FIELD_NAME, group.getName());
+          return deleteBuilder.delete();
+        })
         .thenApply((result) -> {
           // we force the unsubscribe in cache anyway (for default groups in cache)
           doUnsubscribeInCache(userGroupController, user, group.getName(), group);
-          return !result.isEmpty();
+          return result != 0;
         }));
   }
 

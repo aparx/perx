@@ -79,4 +79,13 @@ public final class CommandAssertion {
       throw new CommandError(message);
   }
 
+  public static void checkInRange(int number, int inclusiveMin, int inclusiveMax) throws CommandError {
+    if (number < inclusiveMin || number > inclusiveMax)
+      throw new CommandError((x) ->
+          MessageKey.ERROR_NUMBER_RANGE.substitute(x, new LookupPopulator()
+              .put(ArrayPath.of("min"), String.valueOf(inclusiveMin))
+              .put(ArrayPath.of("max"), String.valueOf(inclusiveMax))
+              .getLookup()));
+  }
+
 }

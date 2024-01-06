@@ -38,8 +38,6 @@ public final class Main extends JavaPlugin implements Listener {
 
   @Override
   public void onEnable() {
-    Bukkit.getPluginManager().registerEvents(this, this);
-
     Perx perx = Perx.getInstance();
     PerxDatabase database = new PerxDatabase();
     // Call `clear` on style executor in case disable was not called before
@@ -56,8 +54,8 @@ public final class Main extends JavaPlugin implements Listener {
     String commandName = perxCommand.getRoot().getInfo().name();
     PluginCommand command = getCommand(commandName);
     Preconditions.checkNotNull(command, "Command " + commandName + " unknown");
-    command.setTabCompleter(PerxCommand.getInstance());
-    command.setExecutor(PerxCommand.getInstance());
+    command.setTabCompleter(perxCommand);
+    command.setExecutor(perxCommand);
   }
 
   @Override
@@ -75,26 +73,4 @@ public final class Main extends JavaPlugin implements Listener {
         .thenRun(() -> Perx.getLogger().info("Finished loading database"));
   }
 
-  @Deprecated
-  @EventHandler(priority = EventPriority.HIGHEST)
-  public void onJoin(PlayerJoinEvent event) {
-    PerxGroupHandler handler = Perx.getInstance().getGroupHandler();
-    Calendar calendar = Calendar.getInstance();
-    calendar.setTime(new Date());
-    calendar.add(Calendar.DAY_OF_MONTH, 3);
-    handler.subscribe(event.getPlayer().getUniqueId(), "admin", calendar.getTime())
-        .thenAccept((x) -> event.getPlayer().sendMessage(String.valueOf(x)));
-    Bukkit.getScheduler().runTaskLater(Perx.getPlugin(), () -> {
-      Perx.getInstance().getUserController()
-          .fetchOrGet(event.getPlayer(), UserCacheStrategy.AUTO)
-          .thenAccept((user) -> {
-            Player player = user.getPlayer();
-            if (player != null)
-              player.sendMessage(user.getSubscribed().stream()
-                  .map(PerxUserGroup::getGroupName)
-                  .toList()
-                  .toString());
-          });
-    }, 1 * 20L);
-  }
 }

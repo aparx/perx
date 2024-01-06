@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @DefaultQualifier(NonNull.class)
 public class HelpCommand extends CommandNode {
 
-  private static final int MAX_NODES_PER_PAGE = 5;
+  private static final int MAX_NODES_PER_PAGE = 4;
 
   private final Supplier<ImmutableList<CommandNode>> descriptiveNodes = Suppliers.memoize(() -> {
     ImmutableList.Builder<CommandNode> listBuilder = ImmutableList.builder();
@@ -61,11 +61,7 @@ public class HelpCommand extends CommandNode {
     CommandSender sender = context.sender();
     PageContainerDecorator<CommandNode, List<CommandNode>> pages = createPages(sender);
     BasicPageContainer<List<CommandNode>> pageContainer = pages.getContainer();
-    CommandAssertion.checkTrue(pageIndex >= 0 && pageIndex < pageContainer.size(),
-        (x) -> MessageKey.ERROR_NUMBER_RANGE.substitute(x, new LookupPopulator()
-            .put(ArrayPath.of("min"), "1")
-            .put(ArrayPath.of("max"), String.valueOf(pageContainer.size()))
-            .getLookup()));
+    CommandAssertion.checkInRange(1 + pageIndex, 1, pageContainer.size());
     List<CommandNode> displayingPage = pageContainer.getPage(pageIndex);
     String line = ChatColor.GRAY + "-".repeat(15) + ChatColor.YELLOW;
     StringBuilder builder = new StringBuilder();

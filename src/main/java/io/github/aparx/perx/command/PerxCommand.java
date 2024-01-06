@@ -31,7 +31,8 @@ public class PerxCommand implements CommandExecutor, TabCompleter {
 
   private static final PerxCommand instance = new PerxCommand();
 
-  private final CommandNode root = new CommandNode(CommandNodeInfo.of("perx"));
+  private final CommandNode root =
+      new CommandNode(CommandNodeInfo.builder("perx").usage("help").build());
 
   private PerxCommand() {
     root.addChild(HelpCommand::new);

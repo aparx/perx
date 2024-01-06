@@ -30,6 +30,8 @@ public enum MessageKey {
   /* +----- generic -----+ */
   GENERIC_LOADING("generic.loading"),
   GENERIC_GROUP_NOT_FOUND("generic.group not found"),
+  GENERIC_GROUP_NOT_SUBSCRIBED("generic.group not subscribed"),
+  GENERIC_GROUP_NONE_EXISTING("commands.group.list.error none existing"),
   /* +----- errors -----+ */
   ERROR_PLAYER("errors.not a player"),
   ERROR_SYNTAX("errors.syntax", "syntax"),
@@ -55,6 +57,14 @@ public enum MessageKey {
   GROUP_UPDATE_SUCCESS("commands.group.update.success"),
   /* +----- command: group info <...> -----+ */
   GROUP_INFO("commands.group.info"),
+  /* +----- command: group add <...> -----+ */
+  GROUP_ADD_DUPLICATE("commands.group.add.error duplicate"),
+  GROUP_ADD_TOO_SHORT("commands.group.add.error duration too small"),
+  GROUP_ADD_FAIL("commands.group.add.error fail"),
+  GROUP_ADD_SUCCESS("commands.group.add.success"),
+  /* +----- command: group remove <...> -----+ */
+  GROUP_REMOVE_FAIL("commands.group.remove.error fail"),
+  GROUP_REMOVE_SUCCESS("commands.group.remove.success"),
   ;
 
   private static final ImmutableMap<ArrayPath, MessageKey> byPath;

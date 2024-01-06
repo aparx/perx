@@ -1,6 +1,7 @@
 package io.github.aparx.perx.message;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Suppliers;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.command.CommandContext;
@@ -12,6 +13,7 @@ import io.github.aparx.perx.group.union.PerxUserGroup;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.controller.PerxUserController;
 import io.github.aparx.perx.utils.ArrayPath;
+import io.github.aparx.perx.utils.duration.DurationUtils;
 import org.apache.commons.text.lookup.StringLookup;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -20,6 +22,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -163,7 +166,8 @@ public class LookupPopulator {
   }
 
   @CanIgnoreReturnValue
-  public LookupPopulator put(ArrayPath prefix, @Nullable CommandNodeInfo info, @Nullable String nil) {
+  public LookupPopulator put(ArrayPath prefix, @Nullable CommandNodeInfo info,
+                             @Nullable String nil) {
     if (info == null) return this;
     put(prefix.add("name"), info.name());
     put(prefix.add("usage"), Objects.toString(info.usage(), nil));
@@ -182,6 +186,18 @@ public class LookupPopulator {
     if (node == null) return this;
     put(prefix, node.getInfo(), nil);
     put(prefix.add("fullUsage"), node::getFullUsage);
+    return this;
+  }
+
+  @CanIgnoreReturnValue
+  public LookupPopulator put(ArrayPath prefix, @Nullable Duration duration) {
+    if (duration == null) return this;
+    // TODO implementation
+    put(prefix, Suppliers.memoize(() -> DurationUtils.createTimeLeft(duration)));
+    put(prefix.add("millis"), String.valueOf(duration.toMillis()));
+    put(prefix.add("seconds"), String.valueOf(duration.toSeconds()));
+    put(prefix.add("hours"), String.valueOf(duration.toHours()));
+    put(prefix.add("days"), String.valueOf(duration.toDays()));
     return this;
   }
 

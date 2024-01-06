@@ -6,7 +6,6 @@ import io.github.aparx.perx.message.LocalizedMessage;
 import io.github.aparx.perx.message.MessageRegister;
 import io.github.aparx.perx.message.MessageKey;
 import io.github.aparx.perx.utils.ArrayPath;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.text.lookup.StringLookup;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -86,6 +85,7 @@ public class MessageConfig extends ConfigHandle {
         .set(MessageKey.QUIT, "&c&l-&r {player.displayName}&r has left the server!")
         .set(MessageKey.GENERIC_LOADING, "{prefix}&7 Loading (...)")
         .set(MessageKey.GENERIC_GROUP_NOT_FOUND, "{prefix.error} Could not find group {name}!")
+        .set(MessageKey.GENERIC_GROUP_NONE_EXISTING, "{prefix.error} No groups currently exist!")
         .set(MessageKey.ERROR_SYNTAX, "{prefix.error} Syntax: /{fullUsage}")
         .set(MessageKey.ERROR_PLAYER, "{prefix.error} You need to be a player for this action!")
         .set(MessageKey.ERROR_PERMISSION, "{prefix.error} Missing permissions: {permissions}")
@@ -101,16 +101,23 @@ public class MessageConfig extends ConfigHandle {
         .set(MessageKey.GROUP_DELETE_SUCCESS, "{prefix.success} Deleted group &r{group.name}&a!")
         .set(MessageKey.GROUP_UPDATE_FAIL, "{prefix.error} Could not update group {group.name}!")
         .set(MessageKey.GROUP_UPDATE_SUCCESS, "{prefix.success} Updated group &r{group.name}&a!")
-        .set(MessageKey.GROUP_UPDATE_PREFIX, "{prefix} Updating prefix of &7{group.name}&r to {group.prefix}")
-        .set(MessageKey.GROUP_UPDATE_SUFFIX, "{prefix} Updating suffix of &7{group.name}&r to {group.suffix}")
-        .set(MessageKey.GROUP_UPDATE_PRIORITY, "{prefix} Updating priority of &7{group.name}&r to &7{group.priority}")
-        .set(MessageKey.GROUP_UPDATE_DEFAULT, "{prefix} Updating default mode of &7{group.name}&r to &7{group.default}")
+        .set(MessageKey.GROUP_UPDATE_PREFIX, "{prefix}&7 Updating prefix of &e{group.name}&7 to '{group.prefix}&7' (...)")
+        .set(MessageKey.GROUP_UPDATE_SUFFIX, "{prefix}&7 Updating suffix of &e{group.name}&7 to '{group.suffix}&7' (...)")
+        .set(MessageKey.GROUP_UPDATE_PRIORITY, "{prefix}&7 Updating priority of &e{group.name}&7 to &e{group.priority}&7 (...)")
+        .set(MessageKey.GROUP_UPDATE_DEFAULT, "{prefix}&7 Updating default mode of &e{group.name}&7 to &e{group.default}&7 (...)")
         .set(MessageKey.GROUP_INFO, List.of(
             "{prefix} Information about &e{group.name}&7:",
             "{prefix} &8• &7Prefix:&r {group.prefix}&r",
             "{prefix} &8• &7Suffix:&r {group.suffix}&r",
             "{prefix} &8• &7Default:&r {group.default.color}{group.default}&r",
             "{prefix} &8• &7Priority:&r {group.priority}&r"))
+        .set(MessageKey.GENERIC_GROUP_NOT_SUBSCRIBED, "{prefix.error} Not subscribed to group {group.name}!")
+        .set(MessageKey.GROUP_ADD_DUPLICATE, "{prefix.error} Player is already added in group {group.name}!")
+        .set(MessageKey.GROUP_ADD_TOO_SHORT, "{prefix.error} Duration must be more or equal to one second!")
+        .set(MessageKey.GROUP_ADD_FAIL, "{prefix.error} Could not add {target.name} to {group.name}!")
+        .set(MessageKey.GROUP_ADD_SUCCESS, "{prefix.success} Added player &r{target.name}&a to group &r{group.name}&a for &7{duration}&a!")
+        .set(MessageKey.GROUP_REMOVE_FAIL, "{prefix.error} Could not remove {target.name} from {group.name}!")
+        .set(MessageKey.GROUP_REMOVE_SUCCESS, "{prefix.success} Removed player &r{target.name}&a from group &r{group.name}&a!")
         .build(register);
   }
 
