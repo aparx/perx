@@ -32,11 +32,11 @@ import java.util.stream.Collectors;
 public class PerxUserGroupManager implements PerxUserGroupService {
 
   private static final Function<Collection<PerxUserGroup>, CompletableFuture<List<PerxGroup>>>
-      USER_GROUP_TO_GROUP_CONVERTER = (collection) -> CompletableFuture.completedFuture(
-      collection.stream()
-          .map(PerxUserGroup::findGroup)
-          .filter(Objects::nonNull)
-          .collect(Collectors.toList()));
+      USER_GROUP_TO_GROUP_CONVERTER =
+      (collection) -> CompletableFuture.completedFuture(collection.stream()
+      .map(PerxUserGroup::findGroup)
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList()));
 
   private @Nullable UserGroupDao dao;
 

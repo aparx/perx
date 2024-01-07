@@ -20,9 +20,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.5.1</version>
-                <configuration>
-                    <!-- put your configurations here -->
-                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
