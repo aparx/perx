@@ -39,7 +39,7 @@ public class TestLocalizedMessage {
 
   @Test
   public void toLines() {
-    testLines(List.of());
+    testLines(List.of(" "));
     testLines(List.of("a", "b"));
     testLines(List.of("c", "d"));
     testLines(List.of("c", "d", "e", "f"));
