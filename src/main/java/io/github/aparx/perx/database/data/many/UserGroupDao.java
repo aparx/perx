@@ -31,7 +31,10 @@ public class UserGroupDao extends BaseDaoImpl<UserGroupModel, Long> {
     super(UserGroupModel.class);
   }
 
-  public UserGroupDao(ConnectionSource connectionSource, Class<UserGroupModel> dataClass) throws SQLException {
+  public UserGroupDao(
+      ConnectionSource connectionSource,
+      Class<UserGroupModel> dataClass)
+      throws SQLException {
     super(connectionSource, dataClass);
   }
 

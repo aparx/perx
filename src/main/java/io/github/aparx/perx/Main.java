@@ -6,24 +6,14 @@ import io.github.aparx.perx.config.ConfigManager;
 import io.github.aparx.perx.config.configs.DatabaseConfig;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.database.PerxDatabase;
-import io.github.aparx.perx.group.PerxGroupBuilder;
-import io.github.aparx.perx.group.PerxGroupHandler;
 import io.github.aparx.perx.group.style.ScoreboardGroupStyleExecutor;
-import io.github.aparx.perx.group.union.PerxUserGroup;
-import io.github.aparx.perx.user.UserCacheStrategy;
 import io.github.aparx.perx.utils.BukkitThreads;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 

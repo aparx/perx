@@ -3,8 +3,7 @@ package io.github.aparx.perx.sign;
 import com.google.common.base.Preconditions;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.PerxPermissions;
-import io.github.aparx.perx.command.PerxCommand;
-import io.github.aparx.perx.group.union.PerxUserGroup;
+import io.github.aparx.perx.group.intersection.PerxUserGroup;
 import io.github.aparx.perx.user.PerxUser;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
@@ -91,6 +90,7 @@ public final class PerxSignManager implements Listener {
 
     @Override
     public void run() {
+      if (handler.isEmpty()) return;
       for (Player player : Bukkit.getOnlinePlayers())
         handler.getInWorld(player.getWorld())
             .forEach((sign) -> updateSign(player, sign, ticks));
@@ -111,7 +111,7 @@ public final class PerxSignManager implements Listener {
           "-",
           StringUtils.SPACE
       };
-      @Nullable PerxUser user = Perx.getInstance().getUserController().get(player);
+      @Nullable PerxUser user = Perx.getInstance().getUserService().get(player);
       if (user == null) {
         player.sendSignChange(location, lines);
         return;

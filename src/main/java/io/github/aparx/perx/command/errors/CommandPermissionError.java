@@ -3,7 +3,7 @@ package io.github.aparx.perx.command.errors;
 import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;
-import io.github.aparx.perx.message.MessageRegister;
+import io.github.aparx.perx.message.MessageRepository;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -32,7 +32,7 @@ public class CommandPermissionError extends CommandError {
     super(key);
   }
 
-  public CommandPermissionError(@Nullable Function<MessageRegister, String> messageFactory) {
+  public CommandPermissionError(@Nullable Function<MessageRepository, String> messageFactory) {
     super(messageFactory);
   }
 

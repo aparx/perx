@@ -4,14 +4,14 @@ import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
-import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupHandler;
-import io.github.aparx.perx.group.controller.PerxGroupController;
+import io.github.aparx.perx.group.PerxGroupRepository;
+import io.github.aparx.perx.group.PerxGroupService;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.utils.ArrayPath;
@@ -59,8 +59,8 @@ public class GroupCreateCommand extends CommandNode {
         )));
     boolean isDefault = args.length() > 1 && Boolean.parseBoolean(args.getString(1));
     // (3) assert that this group is not a duplicate
-    PerxGroupController groupController = Perx.getInstance().getGroupController();
-    CommandAssertion.checkFalse(groupController.contains(name),
+    PerxGroupService groupService = Perx.getInstance().getGroupService();
+    CommandAssertion.checkFalse(groupService.getRepository().contains(name),
         (lang) -> Message.GROUP_CREATE_DUPLICATE.substitute(lang, Map.of("name", name)));
     PerxGroup perxGroup = PerxGroup.of(name);
     perxGroup.setDefault(isDefault);

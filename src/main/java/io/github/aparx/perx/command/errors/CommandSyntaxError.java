@@ -4,7 +4,7 @@ import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;
-import io.github.aparx.perx.message.MessageRegister;
+import io.github.aparx.perx.message.MessageRepository;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -28,7 +28,7 @@ public class CommandSyntaxError extends CommandError {
     super(key);
   }
 
-  public CommandSyntaxError(@Nullable Function<MessageRegister, String> messageFactory) {
+  public CommandSyntaxError(@Nullable Function<MessageRepository, String> messageFactory) {
     super(messageFactory);
   }
 

@@ -15,7 +15,7 @@ import java.util.Map;
  * @version 2024-01-04 00:36
  * @since 1.0
  */
-@DatabaseTable(tableName = "perm_group")
+@DatabaseTable(tableName = "perm_group", daoClass = GroupModelDao.class)
 public class GroupModel implements DatabaseModel<String> {
 
   private static final Gson GSON = new Gson();

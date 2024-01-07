@@ -3,7 +3,7 @@ package io.github.aparx.perx.config.configs;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.config.*;
 import io.github.aparx.perx.message.LocalizedMessage;
-import io.github.aparx.perx.message.MessageRegister;
+import io.github.aparx.perx.message.MessageRepository;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.text.lookup.StringLookup;
@@ -12,7 +12,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -23,10 +22,10 @@ import java.util.Objects;
 @ConfigHandleId("messages")
 public class MessageConfig extends ConfigHandle {
 
-  private final MessageRegister register;
+  private final MessageRepository register;
 
   private final StringLookup defaultLookup = (variableName) -> {
-    MessageRegister register = getRegister();
+    MessageRepository register = getRegister();
     @Nullable Message byReference = Message.getByReference(variableName);
     if (byReference != null)
       return byReference.get(register).getMessage();
@@ -40,12 +39,12 @@ public class MessageConfig extends ConfigHandle {
     this(configManager, Perx.getInstance().getMessages());
   }
 
-  public MessageConfig(ConfigManager configManager, MessageRegister register) {
+  public MessageConfig(ConfigManager configManager, MessageRepository register) {
     super(configManager);
     this.register = register;
   }
 
-  public MessageRegister getRegister() {
+  public MessageRepository getRegister() {
     return register;
   }
 

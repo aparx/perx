@@ -3,7 +3,6 @@ package io.github.aparx.perx.command.commands.group;
 import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
-import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.command.node.CommandNode;
@@ -12,7 +11,7 @@ import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.permission.PerxPermission;
-import io.github.aparx.perx.permission.PerxPermissionRegister;
+import io.github.aparx.perx.permission.PerxPermissionRepository;
 import io.github.aparx.perx.utils.pagination.BasicPageContainer;
 import io.github.aparx.perx.utils.pagination.PageContainerDecorator;
 import org.apache.commons.lang3.StringUtils;
@@ -62,7 +61,7 @@ public class GroupInfoCommand extends AbstractGroupCommand {
       pages.addElement(createKeyValueLine(
           StringUtils.capitalize(key.name().toLowerCase(Locale.ENGLISH)),
           group.getStyle(key)));
-    PerxPermissionRegister permissions = group.getPermissions();
+    PerxPermissionRepository permissions = group.getPermissions();
     int size = permissions.size();
     pages.addElement(createKeyValueLine("Default", group.isDefault()));
     pages.addElement(createKeyValueLine("Priority", group.getPriority()));

@@ -4,16 +4,15 @@ import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
-import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
-import io.github.aparx.perx.group.union.PerxUserGroup;
+import io.github.aparx.perx.group.intersection.PerxUserGroup;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.UserCacheStrategy;
-import io.github.aparx.perx.user.controller.PerxUserController;
+import io.github.aparx.perx.user.PerxUserService;
 import io.github.aparx.perx.utils.duration.DurationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
@@ -54,18 +53,18 @@ public class InfoCommand extends CommandNode {
         && !sender.hasPermission(PerxPermissions.PERMISSION_INFO_OTHER))
       throw createPermissionError(PerxPermissions.PERMISSION_INFO_OTHER);
 
-    PerxUserController userController = Perx.getInstance().getUserController();
+    PerxUserService userService = Perx.getInstance().getUserService();
     context.respond(StringUtils.SPACE);
-    if (!userController.contains(targetPlayer))
+    if (!userService.contains(targetPlayer))
       context.respond(Message.GENERIC_LOADING);
-    userController.fetchOrGet(targetPlayer, UserCacheStrategy.TEMPORARY).thenAccept((user) -> {
+    userService.fetchOrGet(targetPlayer, UserCacheStrategy.TEMPORARY).thenAccept((user) -> {
       OfflinePlayer offline = user.getOffline();
       Collection<PerxUserGroup> subscribed = new ArrayList<>(user.getSubscribed());
       if (!offline.isOnline())
         // insert all default groups, since the player is offline and will not have
         // the default groups added
         subscribed.addAll(Perx.getInstance()
-            .getGroupController()
+            .getGroupService()
             .getDefaults().stream()
             .map((defaultGroup) -> PerxUserGroup.of(offline.getUniqueId(), defaultGroup))
             .toList());

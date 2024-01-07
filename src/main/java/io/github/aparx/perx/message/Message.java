@@ -117,7 +117,7 @@ public enum Message {
     return byReference.get(reference);
   }
 
-  public LocalizedMessage get(MessageRegister register) {
+  public LocalizedMessage get(MessageRepository register) {
     return register.get(getPath());
   }
 
@@ -125,7 +125,7 @@ public enum Message {
     return get(Perx.getInstance().getMessages());
   }
 
-  public String substitute(MessageRegister register) {
+  public String substitute(MessageRepository register) {
     return get(register).substitute();
   }
 
@@ -133,7 +133,7 @@ public enum Message {
     return substitute(Perx.getInstance().getMessages());
   }
 
-  public String substitute(MessageRegister register, StringLookup lookup) {
+  public String substitute(MessageRepository register, StringLookup lookup) {
     return get(register).substitute(lookup);
   }
 
@@ -141,7 +141,7 @@ public enum Message {
     return substitute(Perx.getInstance().getMessages(), lookup);
   }
 
-  public String substitute(MessageRegister register, Map<String, ?> lookup) {
+  public String substitute(MessageRepository register, Map<String, ?> lookup) {
     return get(register).substitute(lookup);
   }
 
@@ -150,7 +150,7 @@ public enum Message {
   }
 
   @CanIgnoreReturnValue
-  public @Nullable LocalizedMessage set(MessageRegister register, LocalizedMessage message) {
+  public @Nullable LocalizedMessage set(MessageRepository register, LocalizedMessage message) {
     return register.set(getPath(), message);
   }
 

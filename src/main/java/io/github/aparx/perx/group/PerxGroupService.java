@@ -1,18 +1,17 @@
-package io.github.aparx.perx.group.controller;
+package io.github.aparx.perx.group;
 
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.errorprone.annotations.CheckReturnValue;
 import com.j256.ormlite.dao.Dao;
-import io.github.aparx.perx.database.PerxModelController;
-import io.github.aparx.perx.database.data.group.GroupModel;
-import io.github.aparx.perx.group.PerxGroup;
+import io.github.aparx.perx.database.PerxModelService;
+import io.github.aparx.perx.database.data.group.GroupModelDao;
 import io.github.aparx.perx.utils.Copyable;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -22,11 +21,15 @@ import java.util.concurrent.CompletableFuture;
  * @version 2024-01-04 04:29
  * @since 1.0
  */
+@CanIgnoreReturnValue
 @DefaultQualifier(NonNull.class)
-public interface PerxGroupController extends Iterable<PerxGroup>, Copyable<PerxGroupController>,
-    PerxModelController<Dao<GroupModel, String>> {
+public interface PerxGroupService extends PerxModelService<GroupModelDao> {
 
-  Dao<GroupModel, String> getDao();
+  @CheckReturnValue
+  PerxGroupRepository getRepository();
+
+  @CheckReturnValue
+  Collection<PerxGroup> getDefaults();
 
   /**
    * Creates and registers {@code group} to this local controller and the database.
@@ -34,7 +37,6 @@ public interface PerxGroupController extends Iterable<PerxGroup>, Copyable<PerxG
    * @param group the group to create and register
    * @return the resolving future, with true if the group was created
    */
-  @CanIgnoreReturnValue
   CompletableFuture<Boolean> create(PerxGroup group);
 
   /**
@@ -43,38 +45,10 @@ public interface PerxGroupController extends Iterable<PerxGroup>, Copyable<PerxG
    * @param group the group to upsert
    * @return the resolving future, with the amount of updated rows
    */
-  @CanIgnoreReturnValue
   CompletableFuture<Dao.CreateOrUpdateStatus> upsert(PerxGroup group);
 
-  @CanIgnoreReturnValue
   CompletableFuture<Integer> update(PerxGroup group);
 
-  @CanIgnoreReturnValue
   CompletableFuture<Boolean> delete(String name);
-
-  int size();
-
-  @CanIgnoreReturnValue
-  boolean register(PerxGroup group);
-
-  @CanIgnoreReturnValue
-  boolean remove(PerxGroup group);
-
-  @CanIgnoreReturnValue
-  @Nullable PerxGroup remove(String name);
-
-  boolean contains(PerxGroup group);
-
-  boolean contains(String name);
-
-  Collection<PerxGroup> getDefaults();
-
-  @Nullable PerxGroup get(String name);
-
-  default PerxGroup getLoudly(String name) {
-    @Nullable PerxGroup group = get(name);
-    Preconditions.checkArgument(group != null, "Group " + name + " unknown");
-    return group;
-  }
 
 }

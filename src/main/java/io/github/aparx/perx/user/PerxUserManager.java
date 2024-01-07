@@ -1,11 +1,9 @@
-package io.github.aparx.perx.user.controller;
+package io.github.aparx.perx.user;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.AbstractIterator;
 import io.github.aparx.perx.database.Database;
-import io.github.aparx.perx.group.union.controller.PerxUserGroupManager;
-import io.github.aparx.perx.user.PerxUser;
-import io.github.aparx.perx.user.UserCacheStrategy;
+import io.github.aparx.perx.group.intersection.PerxUserGroupService;
 import org.bukkit.OfflinePlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -23,24 +21,24 @@ import java.util.concurrent.CompletableFuture;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public class PerxUserManager implements PerxUserController {
+public class PerxUserManager implements PerxUserService {
 
   private transient final Object lock = new Object();
 
   protected final Map<UUID, PerxUser> userMap = new HashMap<>();
   protected final Database database;
-  protected final PerxUserGroupManager userGroupController;
+  protected final PerxUserGroupService userGroupService;
 
-  public PerxUserManager(Database database, PerxUserGroupManager userGroupController) {
+  public PerxUserManager(Database database, PerxUserGroupService userGroupService) {
     Preconditions.checkNotNull(database, "Database must not be null");
-    Preconditions.checkNotNull(userGroupController, "Controller must not be null");
+    Preconditions.checkNotNull(userGroupService, "Service must not be null");
     this.database = database;
-    this.userGroupController = userGroupController;
+    this.userGroupService = userGroupService;
   }
 
   @Override
   public PerxUserManager copy() {
-    PerxUserManager manager = new PerxUserManager(database, userGroupController);
+    PerxUserManager manager = new PerxUserManager(database, userGroupService);
     manager.userMap.putAll(userMap);
     return manager;
   }
@@ -52,7 +50,7 @@ public class PerxUserManager implements PerxUserController {
     synchronized (lock) {
       if (userMap.containsKey(uuid))
         return CompletableFuture.completedFuture(userMap.get(uuid));
-      return userGroupController.getUserGroupsByUser(uuid).thenApply((userGroups) -> {
+      return userGroupService.getUserGroupsByUser(uuid).thenApply((userGroups) -> {
         PerxUser user = (userMap.containsKey(uuid) ? userMap.get(uuid) : new PerxUser(uuid));
         userGroups.forEach(user::addGroup);
         UserCacheStrategy strat = strategy;
@@ -74,7 +72,7 @@ public class PerxUserManager implements PerxUserController {
 
   @Override
   public CompletableFuture<Void> delete(UUID uuid) {
-    return userGroupController.deleteByUser(uuid).thenAccept((val) -> {
+    return userGroupService.deleteByUser(uuid).thenAccept((val) -> {
       if (val) remove(uuid);
     });
   }

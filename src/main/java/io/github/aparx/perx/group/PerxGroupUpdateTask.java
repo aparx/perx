@@ -2,7 +2,7 @@ package io.github.aparx.perx.group;
 
 import com.google.common.base.Preconditions;
 import io.github.aparx.perx.Perx;
-import io.github.aparx.perx.user.controller.PerxUserController;
+import io.github.aparx.perx.user.PerxUserService;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -44,9 +44,9 @@ public final class PerxGroupUpdateTask {
    */
   public void perform() {
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
-    PerxUserController userController = Perx.getInstance().getUserController();
+    PerxUserService userService = Perx.getInstance().getUserService();
     Bukkit.getOnlinePlayers().stream()
-        .map(userController::get)
+        .map(userService::get)
         .filter(Objects::nonNull)
         .flatMap((user) -> user.getSubscribed().stream())
         .forEach(groupHandler::unsubscribeIfPastEndDate);

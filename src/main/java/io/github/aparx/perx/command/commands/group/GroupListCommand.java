@@ -4,13 +4,12 @@ import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
-import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
-import io.github.aparx.perx.group.controller.PerxGroupController;
+import io.github.aparx.perx.group.PerxGroupService;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.utils.pagination.BasicPageContainer;
 import io.github.aparx.perx.utils.pagination.PageContainerDecorator;
@@ -76,8 +75,7 @@ public class GroupListCommand extends CommandNode {
   private PageContainerDecorator<PerxGroup, List<PerxGroup>> createPages() {
     PageContainerDecorator<PerxGroup, List<PerxGroup>> pages =
         PageContainerDecorator.of(MAX_GROUPS_PER_PAGE);
-    PerxGroupController controller = Perx.getInstance().getGroupController();
-    controller.forEach(pages::addElement);
+    Perx.getInstance().getGroupService().getRepository().forEach(pages::addElement);
     return pages;
   }
 }

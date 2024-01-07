@@ -4,7 +4,6 @@ import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
-import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.command.node.CommandNode;
@@ -14,7 +13,7 @@ import io.github.aparx.perx.group.PerxGroupHandler;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.PerxUser;
-import io.github.aparx.perx.user.controller.PerxUserController;
+import io.github.aparx.perx.user.PerxUserService;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.text.lookup.StringLookup;
 import org.bukkit.OfflinePlayer;
@@ -45,8 +44,8 @@ public class GroupRemoveCommand extends AbstractGroupCommand {
   protected void execute(CommandContext context, CommandArgumentList args, PerxGroup group) throws CommandError {
     if (args.isEmpty()) throw createSyntaxError(context);
     OfflinePlayer target = args.first().getOfflinePlayer();
-    PerxUserController userController = Perx.getInstance().getUserController();
-    @Nullable PerxUser user = userController.get(target);
+    PerxUserService userService = Perx.getInstance().getUserService();
+    @Nullable PerxUser user = userService.get(target);
     LookupPopulator populator = new LookupPopulator()
         .put(ArrayPath.of("group"), group)
         .put(ArrayPath.of("target"), target);

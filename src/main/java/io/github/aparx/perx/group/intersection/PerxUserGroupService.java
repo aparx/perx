@@ -1,17 +1,18 @@
-package io.github.aparx.perx.group.union.controller;
+package io.github.aparx.perx.group.intersection;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
-import io.github.aparx.perx.database.PerxModelController;
+import com.google.errorprone.annotations.CheckReturnValue;
+import com.j256.ormlite.dao.Dao;
+import io.github.aparx.perx.database.PerxModelService;
 import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.database.data.many.UserGroupDao;
+import io.github.aparx.perx.database.data.many.UserGroupModel;
 import io.github.aparx.perx.group.PerxGroup;
-import io.github.aparx.perx.group.union.PerxUserGroup;
 import io.github.aparx.perx.user.PerxUser;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -20,19 +21,28 @@ import java.util.concurrent.CompletableFuture;
  * @version 2024-01-04 23:52
  * @since 1.0
  */
+@CanIgnoreReturnValue
 @DefaultQualifier(NonNull.class)
-public interface PerxUserGroupController extends PerxModelController<UserGroupDao> {
+public interface PerxUserGroupService extends PerxModelService<UserGroupDao> {
+
+  @CheckReturnValue
+  PerxUserGroupRepository getRepository();
 
   /** Returns the already cached groups for given user, or fetches & caches them */
+  @CheckReturnValue
   CompletableFuture<List<PerxUserGroup>> getUserGroupsByUser(UUID userId);
 
   /** Returns the already cached groups for given user, or fetches & caches them */
+  @CheckReturnValue
   CompletableFuture<List<PerxGroup>> getGroupsByUser(UUID userId);
 
+  @CheckReturnValue
   CompletableFuture<List<PerxGroup>> getGroupsByUser(PerxUser user);
 
+  @CheckReturnValue
   CompletableFuture<List<GroupModel>> fetchGroupModelsByUser(UUID userId);
 
+  @CheckReturnValue
   CompletableFuture<List<GroupModel>> fetchGroupModelsByUser(PerxUser user);
 
   CompletableFuture<Boolean> deleteByGroup(String groupName);
@@ -45,25 +55,16 @@ public interface PerxUserGroupController extends PerxModelController<UserGroupDa
 
   CompletableFuture<Boolean> deleteById(long id);
 
-  Optional<PerxUserGroup> find(UUID userId, String groupName);
+  CompletableFuture<Dao.CreateOrUpdateStatus> upsert(UserGroupModel userGroupModel);
 
-  /**
-   * Registers and potentially overrides any already similarly registered group in the cache.
-   * <p>This method only accesses the cache. Thus, it has no effect on long term storage.
-   *
-   * @param userGroup the user group to be introduced to the cache
-   * @return true if the user group could be registered
-   */
-  @CanIgnoreReturnValue
-  boolean register(PerxUserGroup userGroup);
+  CompletableFuture<Dao.CreateOrUpdateStatus> upsert(PerxUserGroup userGroup);
 
-  /** Removes all user groups associated with given user (just in cache) */
-  void removeByUser(UUID userId);
+  CompletableFuture<Integer> update(UserGroupModel userGroupModel);
 
-  /** Removes all user groups associated with given group (just in cache) */
-  void removeByGroup(String groupName);
+  CompletableFuture<Integer> update(PerxUserGroup userGroup);
 
-  /** Removes the user group associated to given ID (just in cache) */
-  void removeById(long id);
+  CompletableFuture<Integer> create(UserGroupModel userGroupModel);
+
+  CompletableFuture<Integer> create(PerxUserGroup userGroup);
 
 }

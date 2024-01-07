@@ -3,7 +3,7 @@ package io.github.aparx.perx.command;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;
-import io.github.aparx.perx.message.MessageRegister;
+import io.github.aparx.perx.message.MessageRepository;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -33,7 +33,7 @@ public final class CommandAssertion {
 
   public static void checkTrue(
       boolean condition,
-      @Nullable Function<MessageRegister, String> messageFactory
+      @Nullable Function<MessageRepository, String> messageFactory
   ) throws CommandError {
     if (!condition) throw new CommandError(messageFactory);
   }
@@ -51,7 +51,7 @@ public final class CommandAssertion {
 
   public static void checkFalse(
       boolean condition,
-      @Nullable Function<MessageRegister, String> messageFactory
+      @Nullable Function<MessageRepository, String> messageFactory
   ) throws CommandError {
     if (condition) throw new CommandError(messageFactory);
   }
@@ -64,7 +64,7 @@ public final class CommandAssertion {
 
   public static void checkIsPlayer(
       CommandContext context,
-      @Nullable Function<MessageRegister, String> messageFactory
+      @Nullable Function<MessageRepository, String> messageFactory
   ) throws CommandError {
     if (!context.isPlayer())
       throw new CommandError(messageFactory);

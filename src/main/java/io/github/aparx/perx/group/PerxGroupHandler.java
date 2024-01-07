@@ -8,15 +8,13 @@ import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.database.data.many.UserGroupModel;
-import io.github.aparx.perx.group.controller.PerxGroupController;
-import io.github.aparx.perx.group.union.PerxUserGroup;
-import io.github.aparx.perx.group.union.controller.PerxUserGroupController;
-import io.github.aparx.perx.group.union.controller.PerxUserGroupManager;
+import io.github.aparx.perx.group.intersection.PerxUserGroup;
+import io.github.aparx.perx.group.intersection.PerxUserGroupService;
 import io.github.aparx.perx.group.style.GroupStyleExecutor;
-import io.github.aparx.perx.permission.PerxPermissionRegister;
+import io.github.aparx.perx.permission.PerxPermissionRepository;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.UserCacheStrategy;
-import io.github.aparx.perx.user.controller.PerxUserController;
+import io.github.aparx.perx.user.PerxUserService;
 import io.github.aparx.perx.utils.BukkitThreads;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -56,10 +54,10 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
    * @param groups the groups to which the user subscribes to (in cache)
    */
   public void subscribeInCache(PerxUser user, Collection<PerxGroup> groups) {
-    PerxUserGroupManager controller = Perx.getInstance().getUserGroupController();
+    PerxUserGroupService service = Perx.getInstance().getUserGroupService();
     groups.stream().filter((group) -> !user.hasGroup(group.getName()))
         .map((group) -> PerxUserGroup.of(user.getId(), group))
-        .forEach((userGroup) -> doSubscribeInCache(controller, user, userGroup));
+        .forEach((userGroup) -> doSubscribeInCache(service, user, userGroup));
   }
 
   public void unsubscribeIfPastEndDate(PerxUserGroup userGroup) {
@@ -79,8 +77,8 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
 
   @CanIgnoreReturnValue
   public CompletableFuture<Void> reinitializePlayer(Player player) {
-    Collection<PerxGroup> defaults = Perx.getInstance().getGroupController().getDefaults();
-    @Nullable PerxUser cached = Perx.getInstance().getUserController().get(player);
+    Collection<PerxGroup> defaults = Perx.getInstance().getGroupService().getDefaults();
+    @Nullable PerxUser cached = Perx.getInstance().getUserService().get(player);
     styleExecutor.resetAll(player);
     if (cached != null)
       // remove all only in cache living groups
@@ -88,7 +86,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
           .filter(Predicate.not(PerxUserGroup::isModelInDatabase))
           .toList()
           .forEach(cached::removeGroup);
-    return Perx.getInstance().getUserController()
+    return Perx.getInstance().getUserService()
         .fetchOrGet(player.getUniqueId(), UserCacheStrategy.AUTO)
         .thenAccept((user) -> {
           subscribeInCache(user, defaults);
@@ -122,11 +120,11 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   public void applyGroupToPlayer(Player player, PerxGroup group) {
     BukkitThreads.runOnPrimaryThread(() -> {
       if (!player.isOnline()) return;
-      PerxPermissionRegister register = group.getPermissions();
+      PerxPermissionRepository register = group.getPermissions();
       register.getAdapter().clearPermissions(player);
       register.forEach((perm) -> perm.apply(player));
-      PerxUserController userController = Perx.getInstance().getUserController();
-      @Nullable PerxUser user = userController.get(player);
+      PerxUserService userService = Perx.getInstance().getUserService();
+      @Nullable PerxUser user = userService.get(player);
       if (user == null && group.hasStyle())
         styleExecutor.apply(group, player);
       else if (user != null)
@@ -139,7 +137,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
       if (!player.isOnline()) return;
       group.getPermissions().getAdapter().clearPermissions(player);
       styleExecutor.reset(group, player);
-      @Nullable PerxUser user = Perx.getInstance().getUserController().get(player);
+      @Nullable PerxUser user = Perx.getInstance().getUserService().get(player);
       if (user != null)
         // Fix for https://github.com/aparx/perx/issues/2
         applyHighestPossibleStyle(user);
@@ -157,8 +155,8 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
 
   @CanIgnoreReturnValue
   public CompletableFuture<Dao.CreateOrUpdateStatus> upsert(PerxGroup group) {
-    PerxGroupController groupController = Perx.getInstance().getGroupController();
-    return groupController.upsert(group).thenApply((res) -> {
+    PerxGroupService groupService = Perx.getInstance().getGroupService();
+    return groupService.upsert(group).thenApply((res) -> {
       if (res.getNumLinesChanged() != 0) reinitializeAllPlayers();
       return res;
     });
@@ -166,8 +164,8 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
 
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> create(PerxGroup group) {
-    PerxGroupController groupController = Perx.getInstance().getGroupController();
-    return groupController.create(group).thenApply((res) -> {
+    PerxGroupService groupService = Perx.getInstance().getGroupService();
+    return groupService.create(group).thenApply((res) -> {
       if (res) reinitializeAllPlayers();
       return res;
     });
@@ -175,8 +173,8 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
 
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> delete(PerxGroup group) {
-    PerxGroupController groupController = Perx.getInstance().getGroupController();
-    return groupController.delete(group.getName()).thenApply((res) -> {
+    PerxGroupService groupService = Perx.getInstance().getGroupService();
+    return groupService.delete(group.getName()).thenApply((res) -> {
       if (res) group.updatePlayers();
       return res;
     });
@@ -184,7 +182,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
 
   @CanIgnoreReturnValue
   public CompletableFuture<Integer> update(PerxGroup group) {
-    return Perx.getInstance().getGroupController().update(group).thenApply((res) -> {
+    return Perx.getInstance().getGroupService().update(group).thenApply((res) -> {
       if (res > 0) Perx.getInstance().getGroupHandler().reinitializeAllPlayers();
       return res;
     });
@@ -192,10 +190,10 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
 
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> unsubscribe(PerxGroup group) {
-    PerxUserGroupController controller = Perx.getInstance().getUserGroupController();
-    return controller.deleteByGroup(group.getName()).thenApply((res) -> {
+    PerxUserGroupService groupService = Perx.getInstance().getUserGroupService();
+    return groupService.deleteByGroup(group.getName()).thenApply((res) -> {
       if (!res) return false;
-      group.forSubscribers((user) -> doUnsubscribeInCache(controller, user, group));
+      group.forSubscribers((user) -> doUnsubscribeInCache(groupService, user, group));
       return true;
     });
   }
@@ -203,30 +201,31 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> unsubscribe(PerxUserGroup userGroup) {
     userGroup.markRemoved();
-    PerxUserGroupManager controller = Perx.getInstance().getUserGroupController();
+    PerxUserGroupService service = Perx.getInstance().getUserGroupService();
     return fetchUserToPerform(userGroup.getUserId(), (user) ->
         (userGroup.isModelInDatabase()
-            ? database.executeAsync(() -> controller.getDao().deleteById(userGroup.getId()))
+            ? database.executeAsync(() -> service.getDao().deleteById(userGroup.getId()))
             : CompletableFuture.completedFuture(1)
         ).thenApply((result) -> {
           if (result < 1) return false;
-          doUnsubscribeInCache(controller, user, userGroup.getGroupName(), userGroup.findGroup());
+          doUnsubscribeInCache(service, user, userGroup.getGroupName(), userGroup.findGroup());
           return true;
         }));
   }
 
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> unsubscribe(UUID userId, String groupName) {
-    return unsubscribe(userId, Perx.getInstance().getGroupController().getLoudly(groupName));
+    PerxGroupService groupService = Perx.getInstance().getGroupService();
+    return unsubscribe(userId, groupService.getRepository().getLoudly(groupName));
   }
 
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> unsubscribe(UUID userId, PerxGroup group) {
-    PerxUserGroupManager userGroupController = Perx.getInstance().getUserGroupController();
+    PerxUserGroupService service = Perx.getInstance().getUserGroupService();
     return fetchUserToPerform(userId, (user) -> database
         .executeAsync(() -> {
           DeleteBuilder<UserGroupModel, Long> deleteBuilder =
-              userGroupController.getDao().deleteBuilder();
+              service.getDao().deleteBuilder();
           deleteBuilder.limit(1L).where()
               // unique combo index should force O(1) in engine's register
               .eq(UserGroupModel.USER_ID_FIELD_NAME, user.getId()).and()
@@ -235,7 +234,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
         })
         .thenApply((result) -> {
           // we force the unsubscribe in cache anyway (for default groups in cache)
-          doUnsubscribeInCache(userGroupController, user, group.getName(), group);
+          doUnsubscribeInCache(service, user, group.getName(), group);
           return result != 0;
         }));
   }
@@ -247,28 +246,30 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
 
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> subscribe(UUID userId, String groupName, @Nullable Date end) {
-    PerxGroupController groupController = Perx.getInstance().getGroupController();
-    PerxUserGroup userGroup = PerxUserGroup.of(userId, groupController.getLoudly(groupName));
+    PerxGroupService groupService = Perx.getInstance().getGroupService();
+    PerxGroupRepository groupRepository = groupService.getRepository();
+    PerxUserGroup userGroup = PerxUserGroup.of(userId, groupRepository.getLoudly(groupName));
     if (end != null) userGroup.setEndingDate(end);
     return subscribe(userGroup);
   }
 
   private CompletableFuture<Boolean> subscribe(PerxUserGroup userGroup) {
+    PerxGroupService groupService = Perx.getInstance().getGroupService();
+    PerxGroupRepository groupRepository = groupService.getRepository();
     PerxGroup group = userGroup.getGroup();
-    Preconditions.checkState(Perx.getInstance().getGroupController().contains(group),
-        "Group must be registered");
-    PerxUserGroupManager userGroupController = Perx.getInstance().getUserGroupController();
+    Preconditions.checkState(groupRepository.contains(group), "Group must be registered");
+    PerxUserGroupService userGroupService = Perx.getInstance().getUserGroupService();
     UserGroupModel temporaryModel = new UserGroupModel(
         userGroup.getUserId(), new GroupModel(group.getName()),
         userGroup.getEndingDate());
     return fetchUserToPerform(userGroup.getUserId(), (user) -> database
-        .executeAsync(() -> userGroupController.getDao().create(temporaryModel))
+        .executeAsync(() -> userGroupService.getDao().create(temporaryModel))
         .thenApply((x) -> {
           if (x == 0)
             // subscription was not successful
             return false;
           userGroup.setId(temporaryModel.getId());
-          doSubscribeInCache(userGroupController, user, userGroup);
+          doSubscribeInCache(userGroupService, user, userGroup);
           Perx.getLogger().log(Level.FINE, () -> String.format(
               "(UserGroup-%s) User %s subscribes to %s",
               userGroup.getId(), userGroup.getUserId(), userGroup.getGroupName()));
@@ -278,24 +279,24 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
 
   private CompletableFuture<Boolean> fetchUserToPerform(
       UUID userId, Function<PerxUser, CompletableFuture<Boolean>> action) {
-    return Perx.getInstance().getUserController()
+    return Perx.getInstance().getUserService()
         .fetchOrGet(userId, UserCacheStrategy.AUTO)
         .thenCompose(action);
   }
 
   private void doUnsubscribeInCache(
-      PerxUserGroupController userGroupController, PerxUser user, PerxGroup group) {
-    doUnsubscribeInCache(userGroupController, user, group.getName(), group);
+      PerxUserGroupService userGroupService, PerxUser user, PerxGroup group) {
+    doUnsubscribeInCache(userGroupService, user, group.getName(), group);
   }
 
   private void doUnsubscribeInCache(
-      PerxUserGroupController userGroupController,
+      PerxUserGroupService userGroupService,
       PerxUser user,
       String groupName,
       @Nullable PerxGroup group) {
     BukkitThreads.runOnPrimaryThread(() -> {
       user.removeGroup(groupName);
-      userGroupController.removeByGroup(groupName);
+      userGroupService.getRepository().removeByGroup(groupName);
       @Nullable Player player = user.getPlayer();
       if (group != null && player != null)
         resetGroupFromPlayer(player, group);
@@ -303,10 +304,10 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   }
 
   private void doSubscribeInCache(
-      PerxUserGroupController userGroupController, PerxUser user, PerxUserGroup userGroup) {
+      PerxUserGroupService userGroupService, PerxUser user, PerxUserGroup userGroup) {
     BukkitThreads.runOnPrimaryThread(() -> {
       user.addGroup(userGroup);
-      userGroupController.register(userGroup);
+      userGroupService.getRepository().put(userGroup);
       @Nullable Player player = user.getPlayer();
       @Nullable PerxGroup group = userGroup.findGroup();
       if (player != null && group != null)

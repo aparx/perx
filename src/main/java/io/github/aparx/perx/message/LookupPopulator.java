@@ -9,10 +9,9 @@ import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.style.GroupStyleKey;
-import io.github.aparx.perx.group.union.PerxUserGroup;
+import io.github.aparx.perx.group.intersection.PerxUserGroup;
 import io.github.aparx.perx.permission.PerxPermission;
 import io.github.aparx.perx.user.PerxUser;
-import io.github.aparx.perx.user.controller.PerxUserController;
 import io.github.aparx.perx.utils.ArrayPath;
 import io.github.aparx.perx.utils.duration.DurationUtils;
 import org.apache.commons.text.lookup.StringLookup;
@@ -120,8 +119,7 @@ public class LookupPopulator {
     put(prefix, (OfflinePlayer) player);
     put(prefix.add("displayName"), player.getDisplayName()); // TODO test with group
     put(prefix.add("tabListName"), player.getPlayerListName());
-    PerxUserController userController = Perx.getInstance().getUserController();
-    @Nullable PerxUser user = userController.get(player);
+    @Nullable PerxUser user = Perx.getInstance().getUserService().get(player);
     if (user != null)
       user.getHighestStyledGroup().ifPresent((userGroup) -> {
         put(prefix.add("group"), userGroup);

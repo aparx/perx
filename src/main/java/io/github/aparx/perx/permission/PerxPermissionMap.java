@@ -8,7 +8,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -16,7 +15,7 @@ import java.util.function.Consumer;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public class PerxPermissionMap implements PerxPermissionRegister {
+public class PerxPermissionMap implements PerxPermissionRepository {
 
   private final Map<ArrayPath, PerxPermission> map = new HashMap<>();
 
@@ -28,7 +27,7 @@ public class PerxPermissionMap implements PerxPermissionRegister {
   }
 
   @Override
-  public PerxPermissionRegister copy() {
+  public PerxPermissionRepository copy() {
     PerxPermissionMap permissions = new PerxPermissionMap(adapter);
     permissions.map.putAll(map);
     return permissions;

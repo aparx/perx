@@ -5,20 +5,21 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.config.ConfigManager;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.group.PerxGroupUpdateTask;
-import io.github.aparx.perx.group.union.PerxUserGroup;
-import io.github.aparx.perx.group.union.controller.PerxUserGroupManager;
+import io.github.aparx.perx.group.intersection.PerxUserGroup;
+import io.github.aparx.perx.group.intersection.PerxUserGroupManager;
 import io.github.aparx.perx.group.PerxGroup;
-import io.github.aparx.perx.group.controller.PerxGroupController;
+import io.github.aparx.perx.group.PerxGroupService;
 import io.github.aparx.perx.group.PerxGroupHandler;
-import io.github.aparx.perx.group.controller.PerxGroupManager;
+import io.github.aparx.perx.group.PerxGroupManager;
 import io.github.aparx.perx.group.style.GroupStyleExecutor;
+import io.github.aparx.perx.group.intersection.PerxUserGroupService;
 import io.github.aparx.perx.listeners.DefaultListener;
 import io.github.aparx.perx.message.MessageMap;
-import io.github.aparx.perx.message.MessageRegister;
+import io.github.aparx.perx.message.MessageRepository;
 import io.github.aparx.perx.sign.PerxSignManager;
 import io.github.aparx.perx.user.PerxUser;
-import io.github.aparx.perx.user.controller.PerxUserManager;
-import io.github.aparx.perx.user.controller.PerxUserController;
+import io.github.aparx.perx.user.PerxUserManager;
+import io.github.aparx.perx.user.PerxUserService;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -45,16 +46,16 @@ public final class Perx {
   private transient final Object lock = new Object();
 
   private final List<Listener> listeners = List.of(new DefaultListener());
-  private final MessageRegister messages = new MessageMap();
+  private final MessageRepository messages = new MessageMap();
 
   private volatile boolean loaded;
 
   private @Nullable Plugin plugin;
-  private @Nullable PerxUserController userController;
-  private @Nullable PerxGroupController groupController;
+  private @Nullable PerxUserService userService;
+  private @Nullable PerxGroupService groupService;
   private @Nullable PerxGroupHandler groupHandler;
   private @Nullable Database database;
-  private @Nullable PerxUserGroupManager userGroupController;
+  private @Nullable PerxUserGroupService userGroupService;
   private @Nullable PerxGroupUpdateTask groupUpdateTask;
   private @Nullable ConfigManager configManager;
   private @Nullable PerxSignManager signManager;
@@ -86,20 +87,20 @@ public final class Perx {
     return require(database, "Database is undefined");
   }
 
-  public PerxGroupController getGroupController() {
-    return require(groupController, "GroupController is undefined");
+  public PerxGroupService getGroupService() {
+    return require(groupService, "Service is undefined");
   }
 
   public PerxGroupHandler getGroupHandler() {
-    return require(groupHandler, "GroupHandler is undefined");
+    return require(groupHandler, "Service is undefined");
   }
 
-  public PerxUserGroupManager getUserGroupController() {
-    return require(userGroupController, "UserGroupController is undefined");
+  public PerxUserGroupService getUserGroupService() {
+    return require(userGroupService, "Service is undefined");
   }
 
-  public PerxUserController getUserController() {
-    return require(userController, "UserRegister is undefined");
+  public PerxUserService getUserService() {
+    return require(userService, "Service is undefined");
   }
 
   public PerxGroupUpdateTask getGroupUpdateTask() {
@@ -114,7 +115,7 @@ public final class Perx {
     return require(signManager, "SignManager is undefined");
   }
 
-  public MessageRegister getMessages() {
+  public MessageRepository getMessages() {
     return messages;
   }
 
@@ -134,9 +135,9 @@ public final class Perx {
         this.database = database;
         listeners.forEach((x) -> Bukkit.getPluginManager().registerEvents(x, plugin));
         (this.configManager = new ConfigManager(plugin.getDataFolder())).load();
-        (this.groupController = new PerxGroupManager(database)).load();
-        (this.userGroupController = new PerxUserGroupManager(database)).load();
-        this.userController = new PerxUserManager(database, userGroupController);
+        (this.groupService = new PerxGroupManager(database)).load();
+        (this.userGroupService = new PerxUserGroupManager(database)).load();
+        this.userService = new PerxUserManager(database, userGroupService);
         this.groupHandler = new PerxGroupHandler(database, styleExecutor);
         (this.groupUpdateTask = new PerxGroupUpdateTask(plugin)).start();
         (this.signManager = new PerxSignManager(plugin.getDataFolder())).load();
@@ -157,9 +158,9 @@ public final class Perx {
       try {
         if (groupUpdateTask != null)
           groupUpdateTask.stop();
-        if (groupHandler != null && userController != null)
+        if (groupHandler != null && userService != null)
           Bukkit.getOnlinePlayers().forEach((player) -> {
-            @Nullable PerxUser user = userController.get(player);
+            @Nullable PerxUser user = userService.get(player);
             if (user == null) return;
             // clear player from all groups without unsubscribing
             for (PerxUserGroup userGroup : new HashSet<>(user.getSubscribed())) {

@@ -3,7 +3,6 @@ package io.github.aparx.perx.command.args;
 import com.google.common.base.Preconditions;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.group.PerxGroup;
-import io.github.aparx.perx.group.controller.PerxGroupController;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -12,7 +11,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -59,7 +57,7 @@ public record CommandArgument(String value) {
   }
 
   public @Nullable PerxGroup getGroup() {
-    return Perx.getInstance().getGroupController().get(value);
+    return Perx.getInstance().getGroupService().getRepository().get(value);
   }
 
   @Override

@@ -8,7 +8,8 @@ import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
-import io.github.aparx.perx.group.controller.PerxGroupController;
+import io.github.aparx.perx.group.PerxGroupRepository;
+import io.github.aparx.perx.group.PerxGroupService;
 import io.github.aparx.perx.message.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -50,10 +51,11 @@ public abstract class AbstractGroupCommand extends CommandNode {
     if (args.length() != 1)
       return super.tabComplete(context, args.skip());
     if (args.isEmpty()) return null;
-    PerxGroupController groupController = Perx.getInstance().getGroupController();
-    List<String> list = new ArrayList<>(Math.min(16, groupController.size()));
+    PerxGroupService groupService = Perx.getInstance().getGroupService();
+    PerxGroupRepository groupRepository = groupService.getRepository();
+    List<String> list = new ArrayList<>(Math.min(16, groupRepository.size()));
     String filterByName = args.getString(0);
-    for (PerxGroup group : groupController)
+    for (PerxGroup group : groupRepository)
       if (StringUtils.startsWithIgnoreCase(group.getName(), filterByName))
         list.add(group.getName());
     return list;

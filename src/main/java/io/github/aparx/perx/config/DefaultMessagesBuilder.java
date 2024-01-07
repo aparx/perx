@@ -4,7 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.message.LocalizedMessage;
 import io.github.aparx.perx.message.Message;
-import io.github.aparx.perx.message.MessageRegister;
+import io.github.aparx.perx.message.MessageRepository;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -85,7 +85,7 @@ public class DefaultMessagesBuilder {
     return set(key, messageFactory.apply(LocalizedMessage.join(message)));
   }
 
-  public void build(MessageRegister register) {
+  public void build(MessageRepository register) {
     for (Message key : Message.values()) {
       @Nullable LocalizedMessage message = messages.get(key);
       Preconditions.checkNotNull(message, "Missing message for: " + key.getPath());

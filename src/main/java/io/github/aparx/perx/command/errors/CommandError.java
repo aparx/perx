@@ -2,7 +2,7 @@ package io.github.aparx.perx.command.errors;
 
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.message.Message;
-import io.github.aparx.perx.message.MessageRegister;
+import io.github.aparx.perx.message.MessageRepository;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.function.Function;
@@ -14,13 +14,13 @@ import java.util.function.Function;
  */
 public class CommandError extends Exception {
 
-  private final @Nullable Function<MessageRegister, @Nullable String> messageFactory;
+  private final @Nullable Function<MessageRepository, @Nullable String> messageFactory;
 
   public CommandError(@Nullable Message key) {
     this((register) -> (key != null ? key.get(register).getMessage() : null));
   }
 
-  public CommandError(@Nullable Function<MessageRegister, String> messageFactory) {
+  public CommandError(@Nullable Function<MessageRepository, String> messageFactory) {
     this.messageFactory = messageFactory;
   }
 
@@ -50,7 +50,7 @@ public class CommandError extends Exception {
     return getLocalizedMessage(Perx.getInstance().getMessages());
   }
 
-  public @Nullable String getLocalizedMessage(MessageRegister register) {
+  public @Nullable String getLocalizedMessage(MessageRepository register) {
     return (messageFactory != null ? messageFactory.apply(register) : getMessage());
   }
 

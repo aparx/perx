@@ -34,7 +34,7 @@ public class UserGroupModel implements DatabaseModel<Long> {
   @DatabaseField
   private Date endDate;
 
-  protected UserGroupModel() {}
+  public UserGroupModel() {}
 
   public UserGroupModel(UUID user, GroupModel group) {
     this(user, group, null);

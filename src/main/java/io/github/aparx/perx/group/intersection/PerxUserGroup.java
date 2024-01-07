@@ -1,4 +1,4 @@
-package io.github.aparx.perx.group.union;
+package io.github.aparx.perx.group.intersection;
 
 import com.google.common.base.Preconditions;
 import com.j256.ormlite.dao.Dao;
@@ -130,18 +130,18 @@ public class PerxUserGroup implements DatabaseConvertible<UserGroupModel>,
 
   @Override
   public CompletableFuture<Dao.CreateOrUpdateStatus> push() {
-    return Perx.getInstance().getUserGroupController().upsert(this);
+    return Perx.getInstance().getUserGroupService().upsert(this);
   }
 
   @Override
   public CompletableFuture<?> update() {
-    return Perx.getInstance().getUserGroupController().update(this);
+    return Perx.getInstance().getUserGroupService().update(this);
   }
 
   @Override
   public CompletableFuture<Boolean> delete() {
     Preconditions.checkState(isModelInDatabase(), "Not a database model");
-    return Perx.getInstance().getUserGroupController().deleteById(getId());
+    return Perx.getInstance().getUserGroupService().deleteById(getId());
   }
 
   public void deleteRemovalMark() {

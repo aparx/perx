@@ -6,11 +6,10 @@ import com.j256.ormlite.dao.Dao;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.database.data.DatabaseConvertible;
 import io.github.aparx.perx.database.data.group.GroupModel;
-import io.github.aparx.perx.group.style.GroupStyleExecutor;
 import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.permission.*;
 import io.github.aparx.perx.user.PerxUser;
-import io.github.aparx.perx.user.controller.PerxUserController;
+import io.github.aparx.perx.user.PerxUserService;
 import io.github.aparx.perx.utils.BukkitThreads;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
@@ -20,7 +19,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import java.awt.print.PrinterException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -39,7 +37,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
 
   private final String name;
   private final EnumMap<GroupStyleKey, @Nullable String> styles;
-  private final PerxPermissionRegister permissions;
+  private final PerxPermissionRepository permissions;
 
   /** Defines the default state of this group */
   private boolean isDefault;
@@ -47,19 +45,19 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   /** The lower the priority, the more important this group is */
   private int priority = DEFAULT_PRIORITY;
 
-  private PerxGroup(String name, PerxPermissionRegister permissions) {
+  private PerxGroup(String name, PerxPermissionRepository permissions) {
     Preconditions.checkNotNull(name, "Name must not be null");
     Preconditions.checkNotNull(permissions, "Permissions must not be null");
-    this.name = formatName(name);
+    this.name = transformKey(name);
     this.styles = new EnumMap<>(GroupStyleKey.class);
     this.permissions = permissions;
   }
 
-  public static String formatName(String name) {
+  public static String transformKey(String name) {
     return name.toLowerCase(Locale.ENGLISH);
   }
 
-  public static PerxGroup of(String name, PerxPermissionRegister register) {
+  public static PerxGroup of(String name, PerxPermissionRepository register) {
     Validate.notEmpty(name, "Group name must not be empty");
     Validate.noNullElements(register, "Permission must not be null");
     return new PerxGroup(name, register);
@@ -110,7 +108,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   }
 
   public void forSubscribers(Consumer<PerxUser> action) {
-    Perx.getInstance().getUserController().forEach((user) -> {
+    Perx.getInstance().getUserService().forEach((user) -> {
       if (user.hasGroup(getName()))
         action.accept(user);
     });
@@ -118,9 +116,9 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
 
   public void forPlayers(BiConsumer<PerxUser, Player> action) {
     BukkitThreads.runOnPrimaryThread(() -> {
-      PerxUserController userController = Perx.getInstance().getUserController();
+      PerxUserService userService = Perx.getInstance().getUserService();
       Bukkit.getOnlinePlayers().forEach((player) -> {
-        @Nullable PerxUser user = userController.get(player);
+        @Nullable PerxUser user = userService.get(player);
         if (user == null || !user.hasGroup(getName())) return;
         action.accept(user, player);
       });
@@ -183,7 +181,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return styles.get(key) != null;
   }
 
-  public PerxPermissionRegister getPermissions() {
+  public PerxPermissionRepository getPermissions() {
     return permissions;
   }
 

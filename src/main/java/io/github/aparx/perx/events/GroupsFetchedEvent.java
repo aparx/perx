@@ -1,7 +1,7 @@
 package io.github.aparx.perx.events;
 
 import com.google.common.base.Preconditions;
-import io.github.aparx.perx.group.controller.PerxGroupController;
+import io.github.aparx.perx.group.PerxGroupService;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -20,12 +20,12 @@ public class GroupsFetchedEvent extends Event {
 
   private static final HandlerList handlerList = new HandlerList();
 
-  private final PerxGroupController controller;
+  private final PerxGroupService service;
 
-  public GroupsFetchedEvent(PerxGroupController controller, boolean isAsync) {
+  public GroupsFetchedEvent(PerxGroupService service, boolean isAsync) {
     super(isAsync);
-    Preconditions.checkNotNull(controller, "Controller must not be null");
-    this.controller = controller;
+    Preconditions.checkNotNull(service, "Service must not be null");
+    this.service = service;
   }
 
   public static HandlerList getHandlerList() {
@@ -37,7 +37,7 @@ public class GroupsFetchedEvent extends Event {
     return handlerList;
   }
 
-  public PerxGroupController getController() {
-    return controller;
+  public PerxGroupService getService() {
+    return service;
   }
 }

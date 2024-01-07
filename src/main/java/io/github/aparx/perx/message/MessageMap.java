@@ -16,7 +16,7 @@ import java.util.function.BiConsumer;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public class MessageMap implements MessageRegister {
+public class MessageMap implements MessageRepository {
 
   private final Map<ArrayPath, LocalizedMessage> messageMap;
 

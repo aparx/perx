@@ -14,7 +14,7 @@ import java.util.function.BiConsumer;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public interface MessageRegister {
+public interface MessageRepository {
 
   /**
    * Returns the message at given path.

@@ -16,8 +16,8 @@ import java.util.Map;
  * @version 2024-01-04 00:59
  * @since 1.0
  */
-public interface PerxPermissionRegister extends Iterable<PerxPermission>,
-    Copyable<PerxPermissionRegister> {
+public interface PerxPermissionRepository extends Iterable<PerxPermission>,
+    Copyable<PerxPermissionRepository> {
 
   /**
    * Returns an interface that handles the giving and revoking of permissions of permissibles.

@@ -4,7 +4,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.AbstractIterator;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.Perx;
-import io.github.aparx.perx.group.union.PerxUserGroup;
+import io.github.aparx.perx.group.intersection.PerxUserGroup;
+import io.github.aparx.perx.group.intersection.PerxUserGroupService;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -104,7 +105,8 @@ public class PerxUser implements Iterable<PerxUserGroup> {
           return endOfData();
         PerxUserGroup next = iterator.next();
         if (next.isGroupValid()) return next;
-        Perx.getInstance().getUserGroupController().removeById(next.getId());
+        PerxUserGroupService service = Perx.getInstance().getUserGroupService();
+        service.getRepository().removeById(next.getId());
         iterator.remove();
         return computeNext();
       }

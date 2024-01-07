@@ -57,6 +57,14 @@ public final class PerxSignHandler implements Listener, Iterable<PerxSign> {
     }
   }
 
+  public int size() {
+    return signs.size();
+  }
+
+  public boolean isEmpty() {
+    return signs.isEmpty();
+  }
+
   public boolean isValid(Location location) {
     return location.getBlock().getState() instanceof Sign;
   }

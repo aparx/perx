@@ -10,7 +10,7 @@ import com.j256.ormlite.dao.Dao;
  * @version 2024-01-04 05:20
  * @since 1.0
  */
-public interface PerxModelController<T extends Dao<?, ?>> {
+public interface PerxModelService<T extends Dao<?, ?>> {
 
   void load();
 
