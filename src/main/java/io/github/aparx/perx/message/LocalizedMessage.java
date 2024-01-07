@@ -115,13 +115,13 @@ public class LocalizedMessage {
         : getMessage());
   }
 
-  public String substituteArgs(Object... args) {
+  public String substituteArgs(@Nullable Object... args) {
     if (ArrayUtils.isEmpty(args))
       return substitute();
     return substitute((variableName) -> {
       @Nullable Integer value = Ints.tryParse(variableName);
       return (value != null && value >= 0 && value < args.length
-          ? Objects.toString(args[value]) : null);
+          ? Objects.toString(args[value], null) : null);
     });
   }
 
@@ -153,5 +153,15 @@ public class LocalizedMessage {
   @Override
   public int hashCode() {
     return Objects.hash(message, defaultLookup);
+  }
+
+  @Override
+  public String toString() {
+    return "LocalizedMessage{" +
+        "message='" + message + '\'' +
+        ", formatted='" + formatted + '\'' +
+        ", defaultLookup=" + defaultLookup +
+        ", defaultSubstitutor=" + defaultSubstitutor +
+        '}';
   }
 }

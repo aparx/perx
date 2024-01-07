@@ -28,24 +28,24 @@ public class PerxGroupBuilder {
     this.group = group;
   }
 
-  public static PerxGroupBuilder builder(PerxGroup modifiableGroup) {
+  public static PerxGroupBuilder delegate(PerxGroup modifiableGroup) {
     return new PerxGroupBuilder(modifiableGroup);
   }
 
   public static PerxGroupBuilder builder(String name, PermissionAdapter adapter) {
-    return builder(PerxGroup.of(name, adapter));
+    return delegate(PerxGroup.of(name, adapter));
   }
 
   public static PerxGroupBuilder builder(String name) {
-    return builder(PerxGroup.of(name));
+    return delegate(PerxGroup.of(name));
   }
 
   public static PerxGroupBuilder copyOf(PerxGroupBuilder builder) {
-    return builder(PerxGroup.copyOf(builder.group));
+    return delegate(PerxGroup.copyOf(builder.group));
   }
 
   public static PerxGroupBuilder copyOf(PerxGroup group) {
-    return builder(PerxGroup.copyOf(group));
+    return delegate(PerxGroup.copyOf(group));
   }
 
   @CanIgnoreReturnValue
@@ -55,7 +55,7 @@ public class PerxGroupBuilder {
   }
 
   @CanIgnoreReturnValue
-  public PerxGroupBuilder isDefault(boolean isDefault) {
+  public PerxGroupBuilder setDefault(boolean isDefault) {
     this.group.setDefault(isDefault);
     return this;
   }

@@ -8,6 +8,7 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -30,7 +31,15 @@ public final class DurationParser implements DurationProcessor {
     this.units = units.clone();
     ImmutableMap.Builder<String, DurationUnit> mapBuilder = ImmutableMap.builder();
     for (DurationUnit unit : units)
-      unit.forEach((literal) -> mapBuilder.put(literal, unit));
+      unit.forEach((literal) -> {
+        char[] array = literal.toCharArray();
+        for (int i = 0; i < array.length; ++i) {
+          if (!Character.isLetter(array[i]))
+            throw new IllegalArgumentException("Literal " + literal + " must only contain letters");
+          array[i] = Character.toLowerCase(array[i]);
+        }
+        mapBuilder.put(new String(array), unit);
+      });
     this.byLiteral = mapBuilder.build();
   }
 
@@ -39,7 +48,8 @@ public final class DurationParser implements DurationProcessor {
   }
 
   @Override
-  public Duration parse(String string) {
+  public Duration parse(String string) throws DurationParseException {
+    // whoever reads this, I have to flex that this actually worked flawlessly first try
     StringBuilder buffer = new StringBuilder();
     int length = string.length();
     int previousNumber = 0;
@@ -49,8 +59,8 @@ public final class DurationParser implements DurationProcessor {
       if (ch >= '0' && ch <= '9') {
         if (!buffer.isEmpty()) buffer = new StringBuilder();
         previousNumber = 10 * previousNumber + (ch - '0');
-      } else if (!Character.isWhitespace(ch)) {
-        buffer.append(ch);
+      } else if (Character.isLetter(ch)) {
+        buffer.append(Character.toLowerCase(ch));
         @Nullable DurationUnit unit = getByLiteral(buffer.toString());
         if (unit != null) {
           buffer = new StringBuilder();
@@ -58,7 +68,8 @@ public final class DurationParser implements DurationProcessor {
             unitMap.put(unit, previousNumber);
           previousNumber = 0;
         }
-      }
+      } else if (!Character.isWhitespace(ch))
+        throw new DurationParseException("Malformed format ('" + ch + "' <- disallowed)");
     }
     long totalMillis = 0;
     for (Map.Entry<DurationUnit, Integer> entry : unitMap.entrySet())

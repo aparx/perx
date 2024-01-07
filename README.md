@@ -16,6 +16,22 @@ You can create a sign, that shows a viewer's groups by simply putting `[perx]` i
 <br/><br/>
 <img src="https://i.gyazo.com/c66330001f1ee9ade9d42c0ae99eeccb.gif" />
 
+### Creating groups programmatically
+You do not want to use commands? You can extend Perx and create your groups using the `PerxGroupBuilder`, which produces `PerxGroup` instances.
+```java
+PerxGroupBuilder.builder("admin")
+  .prefix(ChatColor.RED + "[Admin]")
+  .suffix("your suffix")
+  .setDefault(false)
+  .addPermission("*")
+  .setPermission("some.permission", false)
+  .priority(0)
+  //^ the lower the priority, the more important
+  .build()
+  .push();
+  //^ upserts group to the database
+```
+
 ### An das PlayLegend Entwicklungsteam
 Alle Punkte die aufgelistet worden sind, wurden bearbeitet und eingefügt, mit noch einigen Zusätzen. Eine Ausnahme ist die, dass es mehrere Sprachen gibt, von die ein Spieler auswählen kann. Dies ist theoretisch aber einfach zu implementieren, da meine Implementierung und Abstrahierung dies zulässt.<br/><br/>
 Die Bewerbungsaufgabe spezifizierte nicht ob Spieler mehrere Gruppen besitzen können, aber nach Anfrage wurde dies bestätigt und dementsprechend auch umgesetzt.

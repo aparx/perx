@@ -55,6 +55,7 @@ public class PerxUser implements Iterable<PerxUserGroup> {
 
   @CanIgnoreReturnValue
   public @Nullable PerxUserGroup addGroup(PerxUserGroup group) {
+    Preconditions.checkArgument(Objects.equals(getId(), group.getUserId()), "User ID mismatch");
     return subscribed.put(group.getGroup().getName(), group);
   }
 

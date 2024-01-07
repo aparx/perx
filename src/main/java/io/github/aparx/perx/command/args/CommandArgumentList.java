@@ -2,6 +2,7 @@ package io.github.aparx.perx.command.args;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.Validate;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
@@ -34,6 +35,7 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
   }
 
   public static CommandArgumentList of(String[] args) {
+    Validate.noNullElements(args, "Argument must not be null");
     return new CommandArgumentList(args, new CommandArgument[args.length]);
   }
 
@@ -112,6 +114,10 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
 
   public String join() {
     return join(ARGUMENT_SEPARATOR);
+  }
+
+  public String[] toArray() {
+    return args.clone();
   }
 
   @Override

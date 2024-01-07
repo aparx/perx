@@ -16,6 +16,7 @@ import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.PerxUserService;
 import io.github.aparx.perx.utils.ArrayPath;
+import io.github.aparx.perx.utils.duration.DurationParseException;
 import io.github.aparx.perx.utils.duration.DurationParser;
 import io.github.aparx.perx.utils.duration.DurationProcessor;
 import org.apache.commons.text.lookup.StringLookup;
@@ -66,7 +67,7 @@ public class GroupAddCommand extends AbstractGroupCommand {
     });
     @Nullable Date endDate = null;
     if (args.length() >= 2) {
-      Duration parse = processor.parse(args.join(1));
+      Duration parse = parseDuration(args.join(1));
       populator.put(ArrayPath.of("duration"), parse);
       CommandAssertion.checkTrue(parse.toSeconds() > 0, (lang) ->
           Message.GROUP_ADD_TOO_SHORT.substitute(populator.getLookup()));
@@ -88,5 +89,13 @@ public class GroupAddCommand extends AbstractGroupCommand {
     return (args.length() == 2
         ? tabCompletePlayers(context, args.getString(1))
         : super.tabComplete(context, args));
+  }
+
+  protected Duration parseDuration(String line) throws CommandError {
+    try {
+      return processor.parse(line);
+    } catch (DurationParseException e) {
+      throw new CommandError(e.getMessage(), e);
+    }
   }
 }

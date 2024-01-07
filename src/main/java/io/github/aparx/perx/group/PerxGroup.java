@@ -11,6 +11,7 @@ import io.github.aparx.perx.permission.*;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.PerxUserService;
 import io.github.aparx.perx.utils.BukkitThreads;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -60,6 +61,8 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   public static PerxGroup of(String name, PerxPermissionRepository register) {
     Validate.notEmpty(name, "Group name must not be empty");
     Validate.noNullElements(register, "Permission must not be null");
+    if (StringUtils.containsWhitespace(name))
+      throw new IllegalArgumentException("Name must not contain whitespace");
     return new PerxGroup(name, register);
   }
 
@@ -77,7 +80,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
         .prefix(model.getPrefix())
         .suffix(model.getSuffix())
         .priority(model.getPriority())
-        .isDefault(model.isDefault())
+        .setDefault(model.isDefault())
         .addPermissions(model.getPermissions())
         .build();
   }

@@ -12,6 +12,6 @@ import java.time.Duration;
 @FunctionalInterface
 public interface DurationProcessor {
 
-  @NonNull Duration parse(@NonNull String string);
+  @NonNull Duration parse(@NonNull String string) throws DurationParseException;
 
 }

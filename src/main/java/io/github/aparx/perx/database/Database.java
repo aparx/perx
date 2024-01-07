@@ -11,7 +11,6 @@ import java.util.concurrent.CompletableFuture;
 /**
  * @author aparx (Vinzent Z.)
  * @version 2024-01-04 07:04
- * @apiNote This interface allows for Database mocking.
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)

@@ -41,7 +41,7 @@ public class PageContainerDecorator<E, P extends Collection<? super E>>
       Supplier<P> pageFactory) {
     Preconditions.checkNotNull(container, "Paginator must not be null");
     Preconditions.checkNotNull(collection, "Collection must not be null");
-    Preconditions.checkArgument(maxPerPage > 1, "Must be more than one");
+    Preconditions.checkArgument(maxPerPage >= 1, "Must be more or equal to one");
     Preconditions.checkNotNull(pageFactory, "Factory must not be null");
     this.container = container;
     this.maxPerPage = maxPerPage;
@@ -69,6 +69,13 @@ public class PageContainerDecorator<E, P extends Collection<? super E>>
     return of(maxPerPage, (Supplier<List<E>>) (Supplier) DEFAULT_PAGE_FACTORY);
   }
 
+  @SuppressWarnings({"unchecked", "rawtypes", "NullableProblems"}) // OK
+  public static <E> PageContainerDecorator<E, List<E>> of(
+      @NonNegative int maxPerPage, Collection<@Nullable E> collection) {
+    return of(new BasicPageContainer<>(), collection, maxPerPage,
+        (Supplier<List<E>>) (Supplier) DEFAULT_PAGE_FACTORY);
+  }
+
   public BasicPageContainer<P> getContainer() {
     return container;
   }
@@ -81,32 +88,34 @@ public class PageContainerDecorator<E, P extends Collection<? super E>>
     return pageFactory;
   }
 
+  public int elementCount() {
+    return elements.size();
+  }
+
   @CanIgnoreReturnValue
   public boolean addElement(@Nullable E element) {
-    if (!elements.add(element))
-      return false;
-    push(Collections.singletonList(element));
-    return true;
+    return push(Collections.singletonList(element));
   }
 
   @CanIgnoreReturnValue
   public boolean addElements(Collection<E> elements) {
-    if (!this.elements.addAll(elements))
-      return false;
-    push(elements);
-    return true;
+    return push(elements);
   }
 
   /** Pushes {@code elements} to the current stack of pages and may create new pages */
-  protected void push(Collection<@Nullable E> elements) {
+  protected boolean push(Collection<@Nullable E> elements) {
     int maxPerPage = getMaxPerPage();
+    boolean modified = false;
     for (E e : elements) {
+      if (!this.elements.add(e)) continue;
+      modified = true;
       int pageIndex = container.size() - 1;
       @Nullable P target = (pageIndex < 0 ? null : container.getPage(pageIndex));
       if (target == null || target.size() >= maxPerPage)
         container.addPage(target = pageFactory.get());
       target.add(e);
     }
+    return modified;
   }
 
   @Override

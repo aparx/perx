@@ -21,6 +21,7 @@ import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.PerxUserManager;
 import io.github.aparx.perx.user.PerxUserService;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
