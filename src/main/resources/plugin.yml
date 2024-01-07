@@ -10,3 +10,25 @@ commands:
   perx:
     usage: "<...>"
     description: "The root perx command (use /perx help)"
+
+permissions:
+  perx.*:
+    description: "Allows anything related to Perx"
+    children:
+      perx.sign: true
+      perx.manage: true
+      perx.info.*: true
+  perx.sign:
+    description: "Allows to create signs that show a player's groups"
+  perx.manage:
+    description: "Manage groups, permissions and players"
+  perx.info.*:
+    description: "Allows to request information about any player"
+    children:
+      perx.info.self: true
+      perx.info.other: true
+  perx.info.self:
+    description: "Allows to request information for the requester"
+    default: true
+  perx.info.other:
+    description: "Allows to request information for others"

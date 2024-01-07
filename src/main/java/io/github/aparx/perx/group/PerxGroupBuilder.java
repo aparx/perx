@@ -5,13 +5,13 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.CheckReturnValue;
 import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.permission.PermissionAdapter;
-import io.github.aparx.perx.permission.PerxPermissionRegister;
 import org.apache.commons.lang3.ArrayUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -78,7 +78,12 @@ public class PerxGroupBuilder {
 
   @CanIgnoreReturnValue
   public PerxGroupBuilder addPermission(String permission) {
-    group.getPermissions().register(permission);
+    return setPermission(permission, true);
+  }
+
+  @CanIgnoreReturnValue
+  public PerxGroupBuilder setPermission(String permission, boolean value) {
+    group.getPermissions().set(permission, value);
     return this;
   }
 
@@ -86,16 +91,16 @@ public class PerxGroupBuilder {
   public PerxGroupBuilder addPermissions(String... permissions) {
     if (ArrayUtils.isEmpty(permissions))
       return this;
-    PerxPermissionRegister handler = group.getPermissions();
-    for (String permission : permissions)
-      handler.register(permission);
-    return this;
+    HashMap<String, Boolean> map = new HashMap<>();
+    for (String key : permissions)
+      map.put(key, true);
+    return addPermissions(map);
   }
 
   @CanIgnoreReturnValue
-  public PerxGroupBuilder addPermissions(Collection<String> permissions) {
+  public PerxGroupBuilder addPermissions(Map<String, Boolean> permissions) {
     if (permissions.isEmpty()) return this;
-    group.getPermissions().registerAll(permissions);
+    group.getPermissions().setAll(permissions);
     return this;
   }
 

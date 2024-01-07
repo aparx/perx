@@ -10,6 +10,7 @@ import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.group.union.PerxUserGroup;
+import io.github.aparx.perx.permission.PerxPermission;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.controller.PerxUserController;
 import io.github.aparx.perx.utils.ArrayPath;
@@ -96,6 +97,15 @@ public class LookupPopulator {
   }
 
   @CanIgnoreReturnValue
+  public LookupPopulator put(ArrayPath prefix, @Nullable PerxPermission permission) {
+    if (permission == null) return this;
+    put(prefix.add("name"), permission.getName());
+    put(prefix.add("value"), String.valueOf(permission.getValue()));
+    put(prefix.add("path"), () -> permission.getPath().join());
+    return this;
+  }
+
+  @CanIgnoreReturnValue
   public LookupPopulator put(ArrayPath prefix, @Nullable OfflinePlayer player) {
     if (player == null) return this;
     @Nullable String name = player.getName();
@@ -113,7 +123,7 @@ public class LookupPopulator {
     PerxUserController userController = Perx.getInstance().getUserController();
     @Nullable PerxUser user = userController.get(player);
     if (user != null)
-      user.getHighestUserGroup().ifPresent((userGroup) -> {
+      user.getHighestStyledGroup().ifPresent((userGroup) -> {
         put(prefix.add("group"), userGroup);
         @Nullable PerxGroup group = userGroup.findGroup();
         if (group != null)

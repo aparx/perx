@@ -6,7 +6,9 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import io.github.aparx.perx.database.data.DatabaseModel;
 import io.github.aparx.perx.group.PerxGroup;
-import org.bukkit.permissions.PermissionDefault;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -45,12 +47,13 @@ public class GroupModel implements DatabaseModel<String> {
     this.id = id;
   }
 
-  private static String[] stringToPerms(String string) {
-    return (string != null ? GSON.fromJson(string, String[].class) : new String[0]);
+  @SuppressWarnings("unchecked")
+  private static Map<String, Boolean> stringToPermMap(String string) {
+    return (string != null ? GSON.fromJson(string, Map.class) : new HashMap<>());
   }
 
-  private static String permsToString(String[] permissions) {
-    return (permissions != null ? GSON.toJson(permissions) : "[]");
+  private static String permMapToString(Map<String, Boolean> map) {
+    return (map != null ? GSON.toJson(map) : "[]");
   }
 
   @Override
@@ -90,16 +93,16 @@ public class GroupModel implements DatabaseModel<String> {
     this.priority = priority;
   }
 
-  public String[] getPermissions() {
-    return stringToPerms(permissions);
+  public Map<String, Boolean> getPermissions() {
+    return stringToPermMap(permissions);
   }
 
   public void setPermissions(String permissions) {
     this.permissions = permissions;
   }
 
-  public void setPermissions(String[] permissions) {
-    setPermissions(permsToString(permissions));
+  public void setPermissions(Map<String, Boolean> permissions) {
+    setPermissions(permMapToString(permissions));
   }
 
   @Override

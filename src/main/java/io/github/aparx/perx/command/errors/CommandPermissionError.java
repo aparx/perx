@@ -1,9 +1,8 @@
 package io.github.aparx.perx.command.errors;
 
-import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.message.LookupPopulator;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.message.MessageRegister;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -18,18 +17,18 @@ import java.util.function.Function;
 public class CommandPermissionError extends CommandError {
 
   public CommandPermissionError(String permission) {
-    this((register) -> MessageKey.ERROR_PERMISSION.substitute(new LookupPopulator()
+    this((register) -> Message.ERROR_PERMISSION.substitute(new LookupPopulator()
         .put(ArrayPath.of("permissions"), permission)
         .getLookup()));
   }
 
   public CommandPermissionError(CommandNode node) {
-    this((register) -> MessageKey.ERROR_PERMISSION.substitute(new LookupPopulator()
+    this((register) -> Message.ERROR_PERMISSION.substitute(new LookupPopulator()
         .put(ArrayPath.of(), node)
         .getLookup()));
   }
 
-  public CommandPermissionError(@Nullable MessageKey key) {
+  public CommandPermissionError(@Nullable Message key) {
     super(key);
   }
 

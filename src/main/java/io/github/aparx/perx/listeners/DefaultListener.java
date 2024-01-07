@@ -3,7 +3,7 @@ package io.github.aparx.perx.listeners;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.events.GroupsFetchedEvent;
 import io.github.aparx.perx.message.LookupPopulator;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.UserCacheStrategy;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.bukkit.Bukkit;
@@ -48,7 +48,7 @@ public final class DefaultListener implements Listener {
         .reinitializePlayer(event.getPlayer())
         .whenComplete((__, ex) -> {
           if (ex == null && !cancelJoinMessage && player.isOnline())
-            Bukkit.broadcastMessage(MessageKey.JOIN.substitute(new LookupPopulator()
+            Bukkit.broadcastMessage(Message.JOIN.substitute(new LookupPopulator()
                 .put(ArrayPath.of("player"), event.getPlayer())
                 .getLookup()));
         });
@@ -57,7 +57,7 @@ public final class DefaultListener implements Listener {
   @EventHandler(priority = EventPriority.HIGHEST)
   public void onQuit(PlayerQuitEvent event) {
     if (event.getQuitMessage() != null)
-      event.setQuitMessage(MessageKey.QUIT.get().substitute(new LookupPopulator()
+      event.setQuitMessage(Message.QUIT.get().substitute(new LookupPopulator()
           .put(ArrayPath.of("player"), event.getPlayer())
           .getLookup()));
     // remove the quitting player from cache

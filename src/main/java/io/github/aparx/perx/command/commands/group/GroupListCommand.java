@@ -1,6 +1,7 @@
 package io.github.aparx.perx.command.commands.group;
 
 import io.github.aparx.perx.Perx;
+import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.PerxCommand;
@@ -10,7 +11,7 @@ import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.controller.PerxGroupController;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.utils.pagination.BasicPageContainer;
 import io.github.aparx.perx.utils.pagination.PageContainerDecorator;
 import org.apache.commons.lang3.StringUtils;
@@ -32,7 +33,7 @@ public class GroupListCommand extends CommandNode {
 
   public GroupListCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("list")
-        .permission(PerxCommand.PERMISSION_MANAGE)
+        .permission(PerxPermissions.PERMISSION_MANAGE)
         .usage("(Page)")
         .description("Shows all groups")
         .build());
@@ -45,12 +46,12 @@ public class GroupListCommand extends CommandNode {
     PageContainerDecorator<PerxGroup, List<PerxGroup>> pages = createPages();
     BasicPageContainer<List<PerxGroup>> pageContainer = pages.getContainer();
     if (pageContainer.isEmpty())
-      throw new CommandError(MessageKey.GENERIC_GROUP_NONE_EXISTING.substitute());
+      throw new CommandError(Message.GENERIC_GROUP_NONE_EXISTING.substitute());
     CommandAssertion.checkInRange(1 + pageIndex, 1, pageContainer.size());
     List<PerxGroup> page = pageContainer.getPage(pageIndex);
     String line = ChatColor.GRAY + "-".repeat(3) + ChatColor.YELLOW;
     StringBuilder builder = new StringBuilder();
-    String prefix = MessageKey.PREFIX.substitute();
+    String prefix = Message.PREFIX.toString();
     builder.append(prefix)
         .append(' ')
         .append(line)
@@ -69,7 +70,7 @@ public class GroupListCommand extends CommandNode {
         .append(group.getName())
         .append(group.isDefault() ? " (default)" : StringUtils.EMPTY)
         .append('\n'));
-    context.sender().sendMessage(builder.toString());
+    context.respond(builder.toString());
   }
 
   private PageContainerDecorator<PerxGroup, List<PerxGroup>> createPages() {

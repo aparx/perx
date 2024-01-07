@@ -6,6 +6,7 @@ import com.j256.ormlite.dao.Dao;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.database.data.DatabaseConvertible;
 import io.github.aparx.perx.database.data.group.GroupModel;
+import io.github.aparx.perx.group.style.GroupStyleExecutor;
 import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.permission.*;
 import io.github.aparx.perx.user.PerxUser;
@@ -19,6 +20,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
+import java.awt.print.PrinterException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -126,26 +128,13 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   }
 
   public String createCustomName(String playerName) {
-    StringBuilder builder = new StringBuilder();
-    if (hasStyle(GroupStyleKey.PREFIX))
-      builder.append(getStyle(GroupStyleKey.PREFIX));
-    builder.append(playerName);
-    if (hasStyle(GroupStyleKey.SUFFIX))
-      builder.append(getStyle(GroupStyleKey.SUFFIX));
-    return builder.toString();
+    return Perx.getInstance().getGroupHandler().styleExecutor().createDisplayName(this, playerName);
   }
 
   @Override
   public GroupModel toModel() {
     GroupModel groupModel = new GroupModel(getName());
-    String[] permissions = new String[this.permissions.size()];
-    Iterator<PerxPermission> itr = this.permissions.iterator();
-    int cursor = 0;
-    for (; itr.hasNext() && cursor < permissions.length; ++cursor)
-      permissions[cursor] = itr.next().getName();
-    groupModel.setPermissions((cursor != permissions.length
-        ? Arrays.copyOf(permissions, cursor)
-        : permissions));
+    groupModel.setPermissions(permissions.toPermissionMap());
     groupModel.setPrefix(getStyle(GroupStyleKey.PREFIX));
     groupModel.setSuffix(getStyle(GroupStyleKey.SUFFIX));
     groupModel.setDefault(isDefault());

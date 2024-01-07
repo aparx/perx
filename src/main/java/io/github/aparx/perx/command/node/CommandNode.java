@@ -14,6 +14,7 @@ import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permissible;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -197,16 +198,17 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
 
   @Override
   public @Nullable List<String> tabComplete(CommandContext context, CommandArgumentList args) {
-    if (!args.isEmpty()) {
-      @Nullable CommandNode child = getChild(args.getString(0));
-      @Nullable List<String> strings = (child != null
-          ? child.tabComplete(context, args.skip())
-          : null);
-      if (strings != null) return strings;
-    }
-    return tabCompleteChildren(context, createNameFilterPredicate(
-        !args.isEmpty() ? args.getString(0) : null
-    ));
+    CommandSender sender = context.sender();
+    if (args.isEmpty() || !hasPermission(sender))
+      return List.of();
+    @Nullable CommandNode child = getChild(args.getString(0));
+    if (child != null && !child.hasPermission(sender))
+      return List.of();
+    @Nullable List<String> strings = (child != null
+        ? child.tabComplete(context, args.skip())
+        : null);
+    if (strings != null) return strings;
+    return tabCompleteChildren(context, createNameFilterPredicate(args.getString(0)));
   }
 
   @Override
@@ -251,11 +253,16 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
         .collect(Collectors.toList());
   }
 
-  protected List<String> tabCompletePlayers(CommandContext context) {
-    Stream<? extends Player> playerStream = Bukkit.getOnlinePlayers().stream();
+  @SuppressWarnings("Guava")
+  protected List<String> tabCompletePlayers(CommandContext context, @Nullable String name) {
+    Stream<? extends Player> stream = Bukkit.getOnlinePlayers().stream();
     if (context.isPlayer())
-      playerStream = playerStream.filter(context.getPlayer()::canSee);
-    return playerStream.map(Player::getName).collect(Collectors.toList());
+      stream = stream.filter(context.getPlayer()::canSee);
+    return stream.map(Player::getName)
+        .filter((name != null
+            ? (playerName) -> StringUtils.startsWithIgnoreCase(playerName, name)
+            : Predicates.alwaysTrue()))
+        .collect(Collectors.toList());
   }
 
   @Override

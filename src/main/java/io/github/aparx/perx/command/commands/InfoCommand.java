@@ -1,6 +1,7 @@
 package io.github.aparx.perx.command.commands;
 
 import io.github.aparx.perx.Perx;
+import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.PerxCommand;
@@ -10,8 +11,7 @@ import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.union.PerxUserGroup;
-import io.github.aparx.perx.message.MessageKey;
-import io.github.aparx.perx.user.PerxUser;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.UserCacheStrategy;
 import io.github.aparx.perx.user.controller.PerxUserController;
 import io.github.aparx.perx.utils.duration.DurationUtils;
@@ -23,7 +23,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import java.time.Duration;
 import java.util.*;
 
 /**
@@ -36,8 +35,8 @@ public class InfoCommand extends CommandNode {
 
   public InfoCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("info")
-        .permission(PerxCommand.PERMISSION_INFO_SELF)
-        .permission(PerxCommand.PERMISSION_INFO_OTHER)
+        .permission(PerxPermissions.PERMISSION_INFO_SELF)
+        .permission(PerxPermissions.PERMISSION_INFO_OTHER)
         .usage("<Player>")
         .build());
   }
@@ -52,13 +51,13 @@ public class InfoCommand extends CommandNode {
     CommandSender sender = context.sender();
     if (context.isPlayer()
         && targetPlayer.equals(context.getPlayer())
-        && !sender.hasPermission(PerxCommand.PERMISSION_INFO_OTHER))
-      throw createPermissionError(PerxCommand.PERMISSION_INFO_OTHER);
+        && !sender.hasPermission(PerxPermissions.PERMISSION_INFO_OTHER))
+      throw createPermissionError(PerxPermissions.PERMISSION_INFO_OTHER);
 
     PerxUserController userController = Perx.getInstance().getUserController();
-    sender.sendMessage(StringUtils.SPACE);
+    context.respond(StringUtils.SPACE);
     if (!userController.contains(targetPlayer))
-      sender.sendMessage(MessageKey.GENERIC_LOADING.substitute());
+      context.respond(Message.GENERIC_LOADING);
     userController.fetchOrGet(targetPlayer, UserCacheStrategy.TEMPORARY).thenAccept((user) -> {
       OfflinePlayer offline = user.getOffline();
       Collection<PerxUserGroup> subscribed = new ArrayList<>(user.getSubscribed());
@@ -71,21 +70,20 @@ public class InfoCommand extends CommandNode {
             .map((defaultGroup) -> PerxUserGroup.of(offline.getUniqueId(), defaultGroup))
             .toList());
       if (subscribed.isEmpty()) {
-        sender.sendMessage(MessageKey.PREFIX.substitute() + " This user has no groups.");
+        context.respond(Message.PREFIX + " This user has no groups.");
         return;
       }
-      sender.sendMessage(String.format("%s Groups of %s:",
-          MessageKey.PREFIX.substitute(), targetPlayer.getName()));
+      context.respond(String.format("%s Groups of %s:", Message.PREFIX, targetPlayer.getName()));
       subscribed.stream()
           .sorted(PerxUserGroup.USER_GROUP_COMPARATOR.reversed())
-          .forEach((group) -> sender.sendMessage(createUserGroupDisplay(group)));
+          .forEach((group) -> context.respond(createUserGroupDisplay(group)));
     });
   }
 
   private String createUserGroupDisplay(PerxUserGroup userGroup) {
     PerxGroup group = userGroup.getGroup();
     StringBuilder builder = new StringBuilder()
-        .append(MessageKey.PREFIX.substitute())
+        .append(Message.PREFIX)
         .append(' ')
         .append(ChatColor.GRAY)
         .append("• ")
@@ -105,7 +103,9 @@ public class InfoCommand extends CommandNode {
 
   @Override
   public @Nullable List<String> tabComplete(CommandContext context, CommandArgumentList args) {
-    return (args.length() != 1 ? super.tabComplete(context, args) : tabCompletePlayers(context));
+    return (args.length() == 1
+        ? tabCompletePlayers(context, args.getString(0))
+        : super.tabComplete(context, args));
   }
 }
 

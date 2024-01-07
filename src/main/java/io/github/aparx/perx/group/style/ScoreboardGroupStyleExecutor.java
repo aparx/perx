@@ -71,6 +71,19 @@ public class ScoreboardGroupStyleExecutor implements GroupStyleExecutor, Iterabl
     forEach((team) -> team.removePlayer(player));
   }
 
+  @Override
+  public String createDisplayName(PerxGroup group, String playerName) {
+    StringBuilder builder = new StringBuilder();
+    if (group.hasStyle(GroupStyleKey.PREFIX))
+      builder.append(group.getStyle(GroupStyleKey.PREFIX));
+    builder.append(ChatColor.RESET);
+    builder.append(playerName);
+    if (group.hasStyle(GroupStyleKey.SUFFIX))
+      builder.append(group.getStyle(GroupStyleKey.SUFFIX));
+    builder.append(ChatColor.RESET);
+    return builder.toString();
+  }
+
   public void applyStyleToTeam(Team team, PerxGroup group) {
     team.setPrefix(Objects.toString(group.getStyle(GroupStyleKey.PREFIX), StringUtils.EMPTY));
     team.setSuffix(Objects.toString(group.getStyle(GroupStyleKey.SUFFIX), StringUtils.EMPTY));

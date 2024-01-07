@@ -1,9 +1,8 @@
 package io.github.aparx.perx.command;
 
-import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.message.LookupPopulator;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.message.MessageRegister;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -58,7 +57,7 @@ public final class CommandAssertion {
   }
 
   public static void checkIsPlayer(CommandContext context) throws CommandError {
-    checkIsPlayer(context, (register) -> MessageKey.ERROR_PLAYER.substitute(
+    checkIsPlayer(context, (register) -> Message.ERROR_PLAYER.substitute(
         register, new LookupPopulator().put(ArrayPath.of(), context).getLookup()
     ));
   }
@@ -82,7 +81,7 @@ public final class CommandAssertion {
   public static void checkInRange(int number, int inclusiveMin, int inclusiveMax) throws CommandError {
     if (number < inclusiveMin || number > inclusiveMax)
       throw new CommandError((x) ->
-          MessageKey.ERROR_NUMBER_RANGE.substitute(x, new LookupPopulator()
+          Message.ERROR_NUMBER_RANGE.substitute(x, new LookupPopulator()
               .put(ArrayPath.of("min"), String.valueOf(inclusiveMin))
               .put(ArrayPath.of("max"), String.valueOf(inclusiveMax))
               .getLookup()));

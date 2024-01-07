@@ -3,6 +3,7 @@ package io.github.aparx.perx.database;
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.logger.Logger;
 import com.j256.ormlite.support.ConnectionSource;
 import io.github.aparx.perx.Perx;
 import org.bukkit.Bukkit;
@@ -22,6 +23,10 @@ import java.util.logging.Level;
  */
 @DefaultQualifier(NonNull.class)
 public class PerxDatabase implements Database {
+
+  static {
+    Logger.setGlobalLogLevel(com.j256.ormlite.logger.Level.ERROR);
+  }
 
   private final transient Object lock = new Object();
 

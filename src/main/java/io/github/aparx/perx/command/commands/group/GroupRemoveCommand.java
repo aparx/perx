@@ -1,6 +1,7 @@
 package io.github.aparx.perx.command.commands.group;
 
 import io.github.aparx.perx.Perx;
+import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.PerxCommand;
@@ -11,18 +12,18 @@ import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupHandler;
 import io.github.aparx.perx.message.LookupPopulator;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.controller.PerxUserController;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.text.lookup.StringLookup;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandSender;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -34,7 +35,7 @@ public class GroupRemoveCommand extends AbstractGroupCommand {
 
   public GroupRemoveCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("remove")
-        .permission(PerxCommand.PERMISSION_MANAGE)
+        .permission(PerxPermissions.PERMISSION_MANAGE)
         .description("Remove players to a group")
         .usage("<Group> <Player>")
         .build());
@@ -50,17 +51,17 @@ public class GroupRemoveCommand extends AbstractGroupCommand {
         .put(ArrayPath.of("group"), group)
         .put(ArrayPath.of("target"), target);
     CommandAssertion.checkTrue(user == null || user.hasGroup(group.getName()), (lang) -> {
-      return MessageKey.GENERIC_GROUP_NOT_SUBSCRIBED.substitute(lang, populator.getLookup());
+      return Message.GENERIC_GROUP_NOT_SUBSCRIBED.substitute(lang, populator.getLookup());
     });
-    CommandSender sender = context.sender();
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
-    sender.sendMessage(MessageKey.GENERIC_LOADING.substitute());
-    groupHandler.unsubscribe(target.getUniqueId(), group.getName())
-        .exceptionally((__) -> false)
-        .thenAccept((res) -> {
+    context.respond(Message.GENERIC_LOADING);
+    ((CompletableFuture<@Nullable Boolean>)
+        groupHandler.unsubscribe(target.getUniqueId(), group.getName()))
+        .exceptionally((__) -> null)
+        .thenAccept((@Nullable Boolean res) -> {
           StringLookup lookup = populator.getLookup();
-          if (res) sender.sendMessage(MessageKey.GROUP_REMOVE_SUCCESS.substitute(lookup));
-          else sender.sendMessage(MessageKey.GROUP_REMOVE_FAIL.substitute(lookup));
+          if (res == null) context.respond(Message.GROUP_REMOVE_FAIL.substitute(lookup));
+          else context.respond(Message.GROUP_REMOVE_SUCCESS.substitute(lookup));
         });
   }
 
@@ -68,6 +69,6 @@ public class GroupRemoveCommand extends AbstractGroupCommand {
   public @Nullable List<String> tabComplete(CommandContext context, CommandArgumentList args) {
     if (args.length() != 2) return super.tabComplete(context, args);
     // TODO only complete players that are in that group (through cache)
-    return tabCompletePlayers(context);
+    return tabCompletePlayers(context, args.getString(1));
   }
 }

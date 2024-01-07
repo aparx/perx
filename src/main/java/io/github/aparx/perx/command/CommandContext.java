@@ -2,6 +2,7 @@ package io.github.aparx.perx.command;
 
 import com.google.common.base.Preconditions;
 import io.github.aparx.perx.command.args.CommandArgumentList;
+import io.github.aparx.perx.message.Message;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -43,6 +44,26 @@ public record CommandContext(
 
   public boolean hasArguments() {
     return !arguments.isEmpty();
+  }
+
+  /**
+   * Response to the action taken by this sender.
+   * <p>The response sends a message to the sender, if it is possible.
+   *
+   * @param message the message to represent a response
+   * @apiNote This is a better usage than sending the message directly to the sender, since it
+   * centralized and also takes into account time of the response. For example, if a message is
+   * sent directly but asynchronously, and the sender is not able to receive responses anymore,
+   * it would break the code.
+   */
+  public void respond(String message) {
+    if (!isPlayer() || getPlayer().isOnline())
+      sender.sendMessage(message);
+  }
+
+  /** @see #respond(String)  */
+  public void respond(Message key) {
+    respond(key.substitute());
   }
 
 }

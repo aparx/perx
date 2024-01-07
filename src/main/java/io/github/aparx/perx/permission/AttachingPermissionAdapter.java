@@ -48,10 +48,10 @@ public class AttachingPermissionAdapter implements PermissionAdapter {
   public void setPermission(Permissible permissible, String name, boolean value) {
     // TODO test rooted wildcard
     getOrCreateAttachment(permissible).setPermission(name, value);
-    if (isWildcardRoot(name)) {
-      ops.add(permissible);
-      permissible.setOp(true);
-    }
+    if (!isWildcardRoot(name)) return;
+    if (value) ops.add(permissible);
+    else ops.remove(permissible);
+    permissible.setOp(value);
   }
 
   @Override

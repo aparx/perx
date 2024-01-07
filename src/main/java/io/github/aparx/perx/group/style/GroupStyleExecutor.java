@@ -34,4 +34,6 @@ public interface GroupStyleExecutor {
   /** Removes all styles from given permissible */
   void resetAll(Permissible permissible);
 
+  String createDisplayName(PerxGroup group, String playerName);
+
 }

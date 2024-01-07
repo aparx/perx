@@ -23,22 +23,24 @@ public class PerxPermission {
   private final String name;
   private final boolean isWildcard;
   private final PermissionAdapter adapter;
+  private boolean value;
 
-  protected PerxPermission(ArrayPath path, PermissionAdapter adapter) {
+  protected PerxPermission(ArrayPath path, PermissionAdapter adapter, boolean value) {
     Preconditions.checkNotNull(path, "Path must not be null");
     Preconditions.checkNotNull(adapter, "Adapter must not be null");
     this.path = path;
     this.name = path.join().toLowerCase(Locale.ENGLISH);
     this.adapter = adapter;
     this.isWildcard = path.last().charAt(0) == WILDCARD_OPERATOR;
+    this.value = value;
   }
 
-  public static PerxPermission of(ArrayPath path, PermissionAdapter assigner) {
-    return new PerxPermission(path, assigner);
+  public static PerxPermission of(ArrayPath path, PermissionAdapter assigner, boolean value) {
+    return new PerxPermission(path, assigner, value);
   }
 
-  public static PerxPermission of(String name, PermissionAdapter assigner) {
-    return of(ArrayPath.parse(name), assigner);
+  public static PerxPermission of(String name, PermissionAdapter assigner, boolean value) {
+    return of(ArrayPath.parse(name), assigner, value);
   }
 
   public final boolean isWildcard() {
@@ -62,13 +64,28 @@ public class PerxPermission {
     return name;
   }
 
+  /** Returns true if this permission is given and false if denied (revoked) */
+  public boolean getValue() {
+    return value;
+  }
+
+  /**
+   * Updates the value of this permission.
+   * @apiNote This does not automatically update players having this permission!
+   *
+   * @param value true if the permission is given, false if denied (revoked)
+   */
+  public void setValue(boolean value) {
+    this.value = value;
+  }
+
   public boolean has(Permissible permissible) {
     Preconditions.checkNotNull(permissible, "Permissible must not be null");
     return adapter.hasPermission(permissible, getName());
   }
 
-  public void apply(Permissible permissible, boolean value) {
-    adapter.setPermission(permissible, getName(), value);
+  public void apply(Permissible permissible) {
+    adapter.setPermission(permissible, getName(), getValue());
   }
 
   public void unset(Permissible permissible) {

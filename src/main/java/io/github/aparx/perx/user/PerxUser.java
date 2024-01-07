@@ -81,6 +81,10 @@ public class PerxUser implements Iterable<PerxUserGroup> {
     return getSubscribed().stream().max(PerxUserGroup::compare);
   }
 
+  public Optional<PerxUserGroup> getHighestStyledGroup() {
+    return getHighestUserGroup((group) -> group.isGroupValid() && group.getGroup().hasStyle());
+  }
+
   public Optional<PerxUserGroup> getHighestUserGroup(Predicate<PerxUserGroup> filter) {
     return getSubscribed().stream().filter(filter).max(PerxUserGroup::compare);
   }

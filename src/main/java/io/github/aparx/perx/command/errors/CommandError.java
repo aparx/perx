@@ -1,7 +1,7 @@
 package io.github.aparx.perx.command.errors;
 
 import io.github.aparx.perx.Perx;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.message.MessageRegister;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -16,7 +16,7 @@ public class CommandError extends Exception {
 
   private final @Nullable Function<MessageRegister, @Nullable String> messageFactory;
 
-  public CommandError(@Nullable MessageKey key) {
+  public CommandError(@Nullable Message key) {
     this((register) -> (key != null ? key.get(register).getMessage() : null));
   }
 

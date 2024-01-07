@@ -3,7 +3,7 @@ package io.github.aparx.perx.command.errors;
 import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.message.LookupPopulator;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.message.MessageRegister;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -18,13 +18,13 @@ import java.util.function.Function;
 public class CommandSyntaxError extends CommandError {
 
   public CommandSyntaxError(CommandContext context, CommandNode node) {
-    this((register) -> MessageKey.ERROR_SYNTAX.substitute(new LookupPopulator()
+    this((register) -> Message.ERROR_SYNTAX.substitute(new LookupPopulator()
         .put(ArrayPath.of(), context)
         .put(ArrayPath.of(), node)
         .getLookup()));
   }
 
-  public CommandSyntaxError(@Nullable MessageKey key) {
+  public CommandSyntaxError(@Nullable Message key) {
     super(key);
   }
 

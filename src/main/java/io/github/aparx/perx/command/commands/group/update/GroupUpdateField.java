@@ -7,7 +7,7 @@ import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.style.GroupStyleKey;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Locale;
@@ -24,7 +24,7 @@ public enum GroupUpdateField {
     int maxLength = GroupStyleKey.PREFIX.getMaxLength();
     String value = list.join();
     CommandAssertion.checkTrue(value.length() <= maxLength,
-        (reg) -> MessageKey.ERROR_PREFIX_TOO_LONG.substitute(Map.of("max", maxLength)));
+        (reg) -> Message.ERROR_PREFIX_TOO_LONG.substitute(Map.of("max", maxLength)));
     group.setStyle(GroupStyleKey.PREFIX, (StringUtils.isNotEmpty(value) ? value + ' ' : null));
   }),
 
@@ -32,7 +32,7 @@ public enum GroupUpdateField {
     int maxLength = GroupStyleKey.SUFFIX.getMaxLength();
     String value = list.join();
     CommandAssertion.checkTrue(value.length() <= maxLength,
-        (reg) -> MessageKey.ERROR_SUFFIX_TOO_LONG.substitute(Map.of("max", maxLength)));
+        (reg) -> Message.ERROR_SUFFIX_TOO_LONG.substitute(Map.of("max", maxLength)));
     group.setStyle(GroupStyleKey.SUFFIX, (StringUtils.isNotEmpty(value) ? ' ' + value : null));
   }),
 

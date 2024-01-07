@@ -2,6 +2,7 @@ package io.github.aparx.perx.command.commands.group;
 
 import com.google.common.base.Preconditions;
 import io.github.aparx.perx.Perx;
+import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.PerxCommand;
@@ -12,7 +13,7 @@ import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupHandler;
 import io.github.aparx.perx.message.LookupPopulator;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.controller.PerxUserController;
 import io.github.aparx.perx.utils.ArrayPath;
@@ -20,7 +21,6 @@ import io.github.aparx.perx.utils.duration.DurationParser;
 import io.github.aparx.perx.utils.duration.DurationProcessor;
 import org.apache.commons.text.lookup.StringLookup;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandSender;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
@@ -45,7 +45,7 @@ public class GroupAddCommand extends AbstractGroupCommand {
 
   public GroupAddCommand(CommandNode parent, DurationProcessor processor) {
     super(parent, CommandNodeInfo.builder("add")
-        .permission(PerxCommand.PERMISSION_MANAGE)
+        .permission(PerxPermissions.PERMISSION_MANAGE)
         .description("Add players to a group (Duration example: 4d7m23s)")
         .usage("<Group> <Player> (Duration)")
         .build());
@@ -63,30 +63,31 @@ public class GroupAddCommand extends AbstractGroupCommand {
         .put(ArrayPath.of("group"), group)
         .put(ArrayPath.of("target"), target);
     CommandAssertion.checkFalse(user != null && user.hasGroup(group.getName()), (lang) -> {
-      return MessageKey.GROUP_ADD_DUPLICATE.substitute(lang, populator.getLookup());
+      return Message.GROUP_ADD_DUPLICATE.substitute(lang, populator.getLookup());
     });
     @Nullable Date endDate = null;
     if (args.length() >= 2) {
       Duration parse = processor.parse(args.join(1));
       populator.put(ArrayPath.of("duration"), parse);
       CommandAssertion.checkTrue(parse.toSeconds() > 0, (lang) ->
-          MessageKey.GROUP_ADD_TOO_SHORT.substitute(populator.getLookup()));
+          Message.GROUP_ADD_TOO_SHORT.substitute(populator.getLookup()));
       endDate = new Date(new Date().toInstant().plus(parse).toEpochMilli());
     } else populator.put(ArrayPath.of("duration"), "permanent");
-    CommandSender sender = context.sender();
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
-    sender.sendMessage(MessageKey.GENERIC_LOADING.substitute());
+    context.respond(Message.GENERIC_LOADING);
     groupHandler.subscribe(target.getUniqueId(), group.getName(), endDate)
         .exceptionally((__) -> false)
         .thenAccept((res) -> {
           StringLookup lookup = populator.getLookup();
-          if (res) sender.sendMessage(MessageKey.GROUP_ADD_SUCCESS.substitute(lookup));
-          else sender.sendMessage(MessageKey.GROUP_ADD_FAIL.substitute(lookup));
+          if (res) context.respond(Message.GROUP_ADD_SUCCESS.substitute(lookup));
+          else context.respond(Message.GROUP_ADD_FAIL.substitute(lookup));
         });
   }
 
   @Override
   public @Nullable List<String> tabComplete(CommandContext context, CommandArgumentList args) {
-    return (args.length() != 2 ? super.tabComplete(context, args) : tabCompletePlayers(context));
+    return (args.length() == 2
+        ? tabCompletePlayers(context, args.getString(1))
+        : super.tabComplete(context, args));
   }
 }

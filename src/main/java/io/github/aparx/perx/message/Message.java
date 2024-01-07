@@ -18,7 +18,7 @@ import java.util.Map;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public enum MessageKey {
+public enum Message {
 
   /* +----- prefix -----+ */
   PREFIX("prefix.default", "prefix"),
@@ -31,7 +31,7 @@ public enum MessageKey {
   GENERIC_LOADING("generic.loading"),
   GENERIC_GROUP_NOT_FOUND("generic.group not found"),
   GENERIC_GROUP_NOT_SUBSCRIBED("generic.group not subscribed"),
-  GENERIC_GROUP_NONE_EXISTING("commands.group.list.error none existing"),
+  GENERIC_GROUP_NONE_EXISTING("generic.group none existing"),
   /* +----- errors -----+ */
   ERROR_PLAYER("errors.not a player"),
   ERROR_SYNTAX("errors.syntax", "syntax"),
@@ -55,8 +55,6 @@ public enum MessageKey {
   GROUP_UPDATE_DEFAULT("commands.group.update.default"),
   GROUP_UPDATE_FAIL("commands.group.update.fail"),
   GROUP_UPDATE_SUCCESS("commands.group.update.success"),
-  /* +----- command: group info <...> -----+ */
-  GROUP_INFO("commands.group.info"),
   /* +----- command: group add <...> -----+ */
   GROUP_ADD_DUPLICATE("commands.group.add.error duplicate"),
   GROUP_ADD_TOO_SHORT("commands.group.add.error duration too short"),
@@ -68,18 +66,25 @@ public enum MessageKey {
   /* +----- command: group purge <...> -----+ */
   GROUP_PURGE_FAIL("commands.group.purge.error fail"),
   GROUP_PURGE_SUCCESS("commands.group.purge.success"),
+  /* +----- command: group perm set <...> -----+ */
+  GROUP_PERM_SET_FAIL("commands.group.perm.set.error fail"),
+  GROUP_PERM_SET_SUCCESS("commands.group.perm.set.success"),
+  /* +----- command: group perm unset <...> -----+ */
+  GROUP_PERM_UNSET_NOT_FOUND("commands.group.perm.unset.error not found"),
+  GROUP_PERM_UNSET_FAIL("commands.group.perm.unset.error fail"),
+  GROUP_PERM_UNSET_SUCCESS("commands.group.perm.unset.success"),
   ;
 
-  private static final ImmutableMap<ArrayPath, MessageKey> byPath;
-  private static final ImmutableMap<String, MessageKey> byReference;
+  private static final ImmutableMap<ArrayPath, Message> byPath;
+  private static final ImmutableMap<String, Message> byReference;
 
   static {
-    MessageKey[] values = values();
-    ImmutableMap.Builder<ArrayPath, MessageKey> byPathBuilder =
+    Message[] values = values();
+    ImmutableMap.Builder<ArrayPath, Message> byPathBuilder =
         ImmutableMap.builderWithExpectedSize(values.length);
-    ImmutableMap.Builder<String, MessageKey> byRefBuilder =
+    ImmutableMap.Builder<String, Message> byRefBuilder =
         ImmutableMap.builderWithExpectedSize(values.length);
-    for (MessageKey key : values) {
+    for (Message key : values) {
       byPathBuilder.put(key.getPath(), key);
       byRefBuilder.put(key.getReference(), key);
     }
@@ -90,25 +95,25 @@ public enum MessageKey {
   private final ArrayPath path;
   private final String reference;
 
-  MessageKey(String path) {
+  Message(String path) {
     this(path, path);
   }
 
-  MessageKey(String path, String reference) {
+  Message(String path, String reference) {
     this(ArrayPath.parse(path), reference);
   }
 
-  MessageKey(ArrayPath path, String reference) {
+  Message(ArrayPath path, String reference) {
     Preconditions.checkNotNull(path);
     this.path = path;
     this.reference = reference;
   }
 
-  public static @Nullable MessageKey getByPath(ArrayPath path) {
+  public static @Nullable Message getByPath(ArrayPath path) {
     return byPath.get(path);
   }
 
-  public static @Nullable MessageKey getByReference(String reference) {
+  public static @Nullable Message getByReference(String reference) {
     return byReference.get(reference);
   }
 
@@ -155,5 +160,10 @@ public enum MessageKey {
 
   public String getReference() {
     return reference;
+  }
+
+  @Override
+  public String toString() {
+    return substitute();
   }
 }

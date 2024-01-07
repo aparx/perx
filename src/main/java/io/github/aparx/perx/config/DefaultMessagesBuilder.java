@@ -3,7 +3,7 @@ package io.github.aparx.perx.config;
 import com.google.common.base.Preconditions;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.message.LocalizedMessage;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.message.MessageRegister;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -27,11 +27,11 @@ import java.util.function.Function;
 @DefaultQualifier(NonNull.class)
 public class DefaultMessagesBuilder {
 
-  private final EnumMap<MessageKey, LocalizedMessage> messages;
+  private final EnumMap<Message, LocalizedMessage> messages;
   private final Function<String, LocalizedMessage> messageFactory;
 
   private DefaultMessagesBuilder(
-      EnumMap<MessageKey, LocalizedMessage> messages,
+      EnumMap<Message, LocalizedMessage> messages,
       Function<String, LocalizedMessage> messageFactory) {
     Preconditions.checkNotNull(messages, "Messages must not be null");
     Preconditions.checkNotNull(messageFactory, "Message factory must not be null");
@@ -40,7 +40,7 @@ public class DefaultMessagesBuilder {
   }
 
   public static DefaultMessagesBuilder builder(Function<String, LocalizedMessage> messageFactory) {
-    return new DefaultMessagesBuilder(new EnumMap<>(MessageKey.class), messageFactory);
+    return new DefaultMessagesBuilder(new EnumMap<>(Message.class), messageFactory);
   }
 
   public Function<String, LocalizedMessage> getFactory() {
@@ -51,14 +51,14 @@ public class DefaultMessagesBuilder {
   public DefaultMessagesBuilder set(ArrayPath path, LocalizedMessage message) {
     Preconditions.checkNotNull(path, "Path must not be null");
     Preconditions.checkNotNull(message, "Message must not be null");
-    @Nullable MessageKey byPath = MessageKey.getByPath(path);
+    @Nullable Message byPath = Message.getByPath(path);
     Preconditions.checkNotNull(byPath, "Path not a valid default message key");
     messages.put(byPath, message);
     return this;
   }
 
   @CanIgnoreReturnValue
-  public DefaultMessagesBuilder set(MessageKey key, LocalizedMessage message) {
+  public DefaultMessagesBuilder set(Message key, LocalizedMessage message) {
     Preconditions.checkNotNull(key, "Key must not be null");
     Preconditions.checkNotNull(message, "Message must not be null");
     messages.put(key, message);
@@ -71,7 +71,7 @@ public class DefaultMessagesBuilder {
   }
 
   @CanIgnoreReturnValue
-  public DefaultMessagesBuilder set(MessageKey key, String message) {
+  public DefaultMessagesBuilder set(Message key, String message) {
     return set(key, messageFactory.apply(message));
   }
 
@@ -81,12 +81,12 @@ public class DefaultMessagesBuilder {
   }
 
   @CanIgnoreReturnValue
-  public DefaultMessagesBuilder set(MessageKey key, Collection<String> message) {
+  public DefaultMessagesBuilder set(Message key, Collection<String> message) {
     return set(key, messageFactory.apply(LocalizedMessage.join(message)));
   }
 
   public void build(MessageRegister register) {
-    for (MessageKey key : MessageKey.values()) {
+    for (Message key : Message.values()) {
       @Nullable LocalizedMessage message = messages.get(key);
       Preconditions.checkNotNull(message, "Missing message for: " + key.getPath());
       key.set(register, message);

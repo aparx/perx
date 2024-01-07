@@ -4,14 +4,11 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import io.github.aparx.perx.command.CommandAssertion;
 import io.github.aparx.perx.command.CommandContext;
-import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
-import io.github.aparx.perx.message.LookupPopulator;
-import io.github.aparx.perx.message.MessageKey;
-import io.github.aparx.perx.utils.ArrayPath;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.utils.pagination.BasicPageContainer;
 import io.github.aparx.perx.utils.pagination.PageContainerDecorator;
 import org.bukkit.ChatColor;
@@ -65,7 +62,7 @@ public class HelpCommand extends CommandNode {
     List<CommandNode> displayingPage = pageContainer.getPage(pageIndex);
     String line = ChatColor.GRAY + "-".repeat(15) + ChatColor.YELLOW;
     StringBuilder builder = new StringBuilder();
-    builder.append(MessageKey.PREFIX.get().getMessage())
+    builder.append(Message.PREFIX)
         .append(' ')
         .append(line)
         .append(" Perx help ")
@@ -77,7 +74,7 @@ public class HelpCommand extends CommandNode {
         .append('\n');
     displayingPage.forEach((node) -> {
       builder
-          .append(MessageKey.PREFIX.get().getMessage())
+          .append(Message.PREFIX)
           .append(ChatColor.GRAY)
           .append(" •")
           .append(ChatColor.WHITE)
@@ -85,13 +82,13 @@ public class HelpCommand extends CommandNode {
           .append(node.getFullUsage())
           .append('\n');
       builder
-          .append(MessageKey.PREFIX.get().getMessage())
+          .append(Message.PREFIX)
           .append(ChatColor.GRAY)
           .append("   ")
           .append(node.getInfo().description())
           .append('\n');
     });
-    sender.sendMessage(builder.toString());
+    context.respond(builder.toString());
   }
 
   private PageContainerDecorator<CommandNode, List<CommandNode>> createPages(CommandSender sender) {

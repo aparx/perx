@@ -124,7 +124,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
       if (!player.isOnline()) return;
       PerxPermissionRegister register = group.getPermissions();
       register.getAdapter().clearPermissions(player);
-      register.forEach((perm) -> perm.apply(player, true));
+      register.forEach((perm) -> perm.apply(player));
       PerxUserController userController = Perx.getInstance().getUserController();
       @Nullable PerxUser user = userController.get(player);
       if (user == null && group.hasStyle())
@@ -149,11 +149,10 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   public void applyHighestPossibleStyle(PerxUser user) {
     @Nullable Player player = user.getPlayer();
     Preconditions.checkNotNull(player, "Player is now offline");
-    user.getHighestUserGroup((group) -> group.isGroupValid() && group.getGroup().hasStyle())
-        .ifPresent((userGroup) -> {
-          @Nullable PerxGroup group = userGroup.findGroup();
-          if (group != null) styleExecutor.apply(group, player);
-        });
+    user.getHighestStyledGroup().ifPresent((userGroup) -> {
+      @Nullable PerxGroup group = userGroup.findGroup();
+      if (group != null) styleExecutor.apply(group, player);
+    });
   }
 
   @CanIgnoreReturnValue

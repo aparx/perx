@@ -9,7 +9,7 @@ import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.controller.PerxGroupController;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import org.apache.commons.lang3.StringUtils;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -41,7 +41,7 @@ public abstract class AbstractGroupCommand extends CommandNode {
       throw createSyntaxError(context);
     @Nullable PerxGroup perxGroup = args.first().getGroup();
     CommandAssertion.checkTrue(perxGroup != null, (lang) ->
-        MessageKey.GENERIC_GROUP_NOT_FOUND.substitute(lang, Map.of("name", args.first().value())));
+        Message.GENERIC_GROUP_NOT_FOUND.substitute(lang, Map.of("name", args.first().value())));
     execute(context, args.skip(), perxGroup);
   }
 

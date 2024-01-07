@@ -1,6 +1,7 @@
 package io.github.aparx.perx.command.commands.group.update;
 
 import com.google.common.collect.ImmutableList;
+import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.command.args.CommandArgumentList;
@@ -10,7 +11,7 @@ import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.message.LookupPopulator;
-import io.github.aparx.perx.message.MessageKey;
+import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.text.lookup.StringLookup;
 import org.bukkit.command.CommandSender;
@@ -30,7 +31,7 @@ public class GroupSetCommand extends CommandNode {
 
   public GroupSetCommand(CommandNode parent) {
     super(parent, CommandNodeInfo.builder("set")
-        .permission(PerxCommand.PERMISSION_MANAGE)
+        .permission(PerxPermissions.PERMISSION_MANAGE)
         .build());
     for (GroupUpdateField field : GroupUpdateField.values())
       addChild(new GroupUpdateFieldCommand(field));
@@ -44,7 +45,7 @@ public class GroupSetCommand extends CommandNode {
           .usage("<Group> " + (!field.getSuggestions().isEmpty()
               ? String.format("(%s)", String.join(":", field.getSuggestions()))
               : "(Value)"))
-          .permission(PerxCommand.PERMISSION_MANAGE)
+          .permission(PerxPermissions.PERMISSION_MANAGE)
           .description(createDescription(field))
           .build());
       this.field = field;
@@ -67,15 +68,15 @@ public class GroupSetCommand extends CommandNode {
           .put(ArrayPath.of("context"), context)
           .put(ArrayPath.of("group"), group, /*nil*/ "none")
           .getLookup();
-      sender.sendMessage((switch (field) {
-        case PREFIX -> MessageKey.GROUP_UPDATE_PREFIX;
-        case SUFFIX -> MessageKey.GROUP_UPDATE_SUFFIX;
-        case PRIORITY -> MessageKey.GROUP_UPDATE_PRIORITY;
-        case DEFAULT -> MessageKey.GROUP_UPDATE_DEFAULT;
+      context.respond((switch (field) {
+        case PREFIX -> Message.GROUP_UPDATE_PREFIX;
+        case SUFFIX -> Message.GROUP_UPDATE_SUFFIX;
+        case PRIORITY -> Message.GROUP_UPDATE_PRIORITY;
+        case DEFAULT -> Message.GROUP_UPDATE_DEFAULT;
       }).substitute(lookup));
       group.update().exceptionally((__) -> 0).thenAccept((x) -> {
-        if (x <= 0) sender.sendMessage(MessageKey.GROUP_UPDATE_FAIL.substitute(lookup));
-        else sender.sendMessage(MessageKey.GROUP_UPDATE_SUCCESS.substitute(lookup));
+        if (x <= 0) context.respond(Message.GROUP_UPDATE_FAIL.substitute(lookup));
+        else context.respond(Message.GROUP_UPDATE_SUCCESS.substitute(lookup));
       });
     }
 

@@ -2,13 +2,13 @@ package io.github.aparx.perx.sign;
 
 import com.google.common.base.Preconditions;
 import io.github.aparx.perx.Perx;
+import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.group.union.PerxUserGroup;
 import io.github.aparx.perx.user.PerxUser;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
@@ -54,7 +54,7 @@ public final class PerxSignManager implements Listener {
     handler.readAsync().thenCompose((__) -> handler.saveAsync()).thenAccept((__) -> {
       if (Perx.getPlugin().isEnabled())
         Bukkit.getPluginManager().registerEvents(this, Perx.getPlugin());
-      Bukkit.getScheduler().runTaskTimer(Perx.getPlugin(), updater, 0, 20);
+      Bukkit.getScheduler().runTaskTimer(Perx.getPlugin(), updater, 0, 30);
     });
   }
 
@@ -62,7 +62,7 @@ public final class PerxSignManager implements Listener {
   @EventHandler(priority = EventPriority.HIGH)
   void onSignChange(SignChangeEvent event) {
     Player player = event.getPlayer();
-    if (player.hasPermission(PerxCommand.PERMISSION_MANAGE)
+    if (player.hasPermission(PerxPermissions.PERMISSION_SIGN)
         && "[perx]".equalsIgnoreCase(event.getLine(0))) {
       event.setCancelled(true);
       handler.add(event.getBlock().getLocation());
@@ -77,7 +77,7 @@ public final class PerxSignManager implements Listener {
     if (!(state instanceof Sign)) return;
     if (!handler.isSign(state.getLocation())) return;
     Player player = event.getPlayer();
-    if (player.hasPermission(PerxCommand.PERMISSION_MANAGE)) {
+    if (player.hasPermission(PerxPermissions.PERMISSION_SIGN)) {
       handler.remove(state.getLocation());
       handler.saveAsync();
     } else event.setCancelled(true);
@@ -91,9 +91,9 @@ public final class PerxSignManager implements Listener {
 
     @Override
     public void run() {
-      Bukkit.getOnlinePlayers().forEach((player) -> {
-        handler.getInWorld(player.getWorld()).forEach((sign) -> updateSign(player, sign, ticks));
-      });
+      for (Player player : Bukkit.getOnlinePlayers())
+        handler.getInWorld(player.getWorld())
+            .forEach((sign) -> updateSign(player, sign, ticks));
       ++ticks;
     }
 
@@ -105,17 +105,24 @@ public final class PerxSignManager implements Listener {
         handler.saveAsync();
         return;
       }
-      String[] lines = new String[4];
-      lines[0] = "§e[Perx]";
+      String[] lines = {
+          "§e[Perx]",
+          "Your groups:",
+          "-",
+          StringUtils.SPACE
+      };
       @Nullable PerxUser user = Perx.getInstance().getUserController().get(player);
-      if (user != null) {
-        Collection<PerxUserGroup> subscribed = user.getSubscribed();
-        Iterator<PerxUserGroup> iterator = subscribed.iterator();
-        int target = !subscribed.isEmpty() ? (int) (ticks % subscribed.size()) : 0;
+      if (user == null) {
+        player.sendSignChange(location, lines);
+        return;
+      }
+      Collection<PerxUserGroup> subscribed = user.getSubscribed();
+      Iterator<PerxUserGroup> iterator = subscribed.iterator();
+      if (!subscribed.isEmpty()) {
+        int target = (int) (ticks % subscribed.size());
         @Nullable PerxUserGroup userGroup = null;
         for (int i = 0; iterator.hasNext() && i <= target; ++i)
           userGroup = iterator.next();
-        lines[1] = "Your groups:";
         if (userGroup != null)
           lines[2] = ChatColor.BOLD + StringUtils.capitalize(userGroup.getGroupName());
         lines[3] = createScrollbar(subscribed.size(), target);
@@ -126,7 +133,7 @@ public final class PerxSignManager implements Listener {
     String createScrollbar(int size, int index) {
       StringBuilder builder = new StringBuilder();
       int show = Math.min(MAX_SIGN_CHAR_LENGTH, size);
-      index = Math.min(index, show - 1);
+      index = Math.max(Math.min(index, show - 1), 0);
       builder.append("•".repeat(Math.max(0, show)));
       builder.insert(index, ChatColor.GRAY);
       builder.insert(3 + index, ChatColor.RESET);

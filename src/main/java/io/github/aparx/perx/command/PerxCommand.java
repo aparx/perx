@@ -25,10 +25,6 @@ import java.util.List;
 @DefaultQualifier(NonNull.class)
 public class PerxCommand implements CommandExecutor, TabCompleter {
 
-  public static final String PERMISSION_MANAGE = "perx.manage";
-  public static final String PERMISSION_INFO_SELF = "perx.info.self";
-  public static final String PERMISSION_INFO_OTHER = "perx.info.other";
-
   private static final PerxCommand instance = new PerxCommand();
 
   private final CommandNode root =
