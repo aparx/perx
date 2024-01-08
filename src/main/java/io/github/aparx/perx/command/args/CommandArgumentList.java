@@ -97,7 +97,8 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
     if (fromInclusiveIndex == 0)
       return String.join(separator, args);
     StringBuilder builder = new StringBuilder();
-    for (String arg : args) {
+    for (int i = fromInclusiveIndex; i < args.length; ++i) {
+      String arg = args[i];
       if (!builder.isEmpty()) builder.append(separator);
       builder.append(arg);
     }
