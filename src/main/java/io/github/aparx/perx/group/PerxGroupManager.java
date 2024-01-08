@@ -107,7 +107,7 @@ public class PerxGroupManager implements PerxGroupService {
   @Override
   public CompletableFuture<Boolean> delete(String name) {
     return getDao().delete(database, name).thenCompose((result) -> {
-          if (result) return CompletableFuture.completedFuture(false);
+          if (!result) return CompletableFuture.completedFuture(false);
           return Perx.getInstance().getUserGroupService()
               .deleteByGroup(name)
               .thenApply((__) -> true)

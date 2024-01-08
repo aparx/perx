@@ -38,7 +38,7 @@ public class GroupDeleteCommand extends AbstractGroupCommand {
     if (!args.isEmpty()) throw createSyntaxError(context);
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
     context.respond(Message.GENERIC_LOADING);
-    groupHandler.delete(group).exceptionally((__) -> false).thenAccept((res) -> {
+    groupHandler.delete(group).exceptionally((ex) -> false).thenAccept((res) -> {
       StringLookup lp = new LookupPopulator().put(ArrayPath.of("group"), group).getLookup();
       if (res) context.respond(Message.GROUP_DELETE_SUCCESS.substitute(lp));
       else context.respond(Message.GROUP_DELETE_FAIL.substitute(lp));
