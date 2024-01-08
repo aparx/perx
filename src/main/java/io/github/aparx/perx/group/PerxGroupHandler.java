@@ -174,9 +174,11 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> delete(PerxGroup group) {
     PerxGroupService groupService = Perx.getInstance().getGroupService();
+    PerxUserGroupService userGroupService = Perx.getInstance().getUserGroupService();
     return groupService.delete(group.getName()).thenApply((res) -> {
-      if (res) group.updatePlayers();
-      return res;
+      if (!res) return false;
+      group.forSubscribers((user) -> doUnsubscribeInCache(userGroupService, user, group));
+      return true;
     });
   }
 
@@ -190,10 +192,10 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
 
   @CanIgnoreReturnValue
   public CompletableFuture<Boolean> unsubscribe(PerxGroup group) {
-    PerxUserGroupService groupService = Perx.getInstance().getUserGroupService();
-    return groupService.deleteByGroup(group.getName()).thenApply((res) -> {
+    PerxUserGroupService userGroupService = Perx.getInstance().getUserGroupService();
+    return userGroupService.deleteByGroup(group.getName()).thenApply((res) -> {
       if (!res) return false;
-      group.forSubscribers((user) -> doUnsubscribeInCache(groupService, user, group));
+      group.forSubscribers((user) -> doUnsubscribeInCache(userGroupService, user, group));
       return true;
     });
   }
