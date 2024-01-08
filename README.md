@@ -33,7 +33,4 @@ PerxGroupBuilder.builder("admin")
 ```
 
 ### An das PlayLegend Entwicklungsteam
-Alle Punkte die aufgelistet worden sind, wurden bearbeitet und eingefügt, mit noch einigen Zusätzen. Eine Ausnahme ist die, dass es mehrere Sprachen gibt, von die ein Spieler auswählen kann. Dies ist theoretisch aber einfach zu implementieren, da meine Implementierung und Abstrahierung dies zulässt.<br/><br/>
-Die Bewerbungsaufgabe spezifizierte nicht ob Spieler mehrere Gruppen besitzen können, aber nach Anfrage wurde dies bestätigt und dementsprechend auch umgesetzt.
-
 Folgend findet sich eine Projektübersicht (Deutsch): https://docs.google.com/presentation/d/1XapqCryj0wmB78rzzybbEU5LY6gxr__NbOUVa-hRonc/edit?usp=sharing
