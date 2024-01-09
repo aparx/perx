@@ -5,6 +5,7 @@
     Perx is asynchronous by nature and is required to be used with a Database.<br/>
   </p>
 </p>
+<br/>
 
 ### Key features
 - Asynchronous to provide good performance on the primary thread 
