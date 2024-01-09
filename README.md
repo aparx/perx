@@ -3,7 +3,7 @@
   <p align="center">
     A permission grouping system for large Bukkit server networks.<br/>
     Perx is asynchronous by nature and is required to be used with a Database.<br/>
-    Project overview (German): https://shorturl.at/juIJ6
+    Project overview (German): https://shorturl.at/jyIW2
   </p>
 </p>
 <br/>
