@@ -1,6 +1,12 @@
-## Perx
-A permission grouping system for large Bukkit server networks.<br/>
-Perx is asynchronous by nature and is required to be used with a Database.<br/>
+<p align="center">
+  <img src="https://github.com/aparx/perx/assets/47287352/9dcafd26-54dd-4e72-b195-784195dda887" width="250" />
+  <p align="center">
+    A permission grouping system for large Bukkit server networks.<br/>
+    Perx is asynchronous by nature and is required to be used with a Database.<br/>
+    Project overview (German): https://shorturl.at/jyIW2
+  </p>
+</p>
+<br/>
 
 ### Key features
 - Asynchronous to provide good performance on the primary thread 
@@ -33,5 +39,4 @@ PerxGroupBuilder.builder("admin")
 ```
 
 ### An das PlayLegend Entwicklungsteam
-Alle Punkte die aufgelistet worden sind, wurden bearbeitet und eingefügt, mit noch einigen Zusätzen. Eine Ausnahme ist die, dass es mehrere Sprachen gibt, von die ein Spieler auswählen kann. Dies ist theoretisch aber einfach zu implementieren, da meine Implementierung und Abstrahierung dies zulässt.<br/><br/>
-Die Bewerbungsaufgabe spezifizierte nicht ob Spieler mehrere Gruppen besitzen können, aber nach Anfrage wurde dies bestätigt und dementsprechend auch umgesetzt.
+Folgend findet sich eine Projektübersicht (Deutsch): https://docs.google.com/presentation/d/1XapqCryj0wmB78rzzybbEU5LY6gxr__NbOUVa-hRonc/edit?usp=sharing
