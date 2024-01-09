@@ -1,6 +1,10 @@
-## Perx
-A permission grouping system for large Bukkit server networks.<br/>
-Perx is asynchronous by nature and is required to be used with a Database.<br/>
+<p align="center">
+  <img src="https://github.com/aparx/perx/assets/47287352/9dcafd26-54dd-4e72-b195-784195dda887" width="250" />
+  <p align="center">
+    A permission grouping system for large Bukkit server networks.<br/>
+    Perx is asynchronous by nature and is required to be used with a Database.<br/>
+  </p>
+</p>
 
 ### Key features
 - Asynchronous to provide good performance on the primary thread 
