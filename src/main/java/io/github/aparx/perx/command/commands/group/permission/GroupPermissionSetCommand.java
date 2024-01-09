@@ -61,10 +61,10 @@ public class GroupPermissionSetCommand extends AbstractGroupCommand {
     String permission = args.getString(0);
     boolean value = (args.length() != 2 || args.get(1).getBoolean());
     ArrayPath arrayPath = ArrayPath.parse(permission);
-    PerxPermissionRepository permissionRegister = group.getPermissions();
+    PerxPermissionRepository permissionRegister = group.getRepository();
     @Nullable PerxPermission before = permissionRegister.get(arrayPath);
     @Nullable Boolean previousValue = (before != null ? before.getValue() : null);
-    PerxPermission updated = group.getPermissions().set(permission, value);
+    PerxPermission updated = group.getRepository().set(permission, value);
     context.respond(Message.GENERIC_LOADING);
     group.update().exceptionally((__) -> 0).thenAccept((res) -> {
       StringLookup lookup = new LookupPopulator()

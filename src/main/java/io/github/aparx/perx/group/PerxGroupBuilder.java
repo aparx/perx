@@ -33,7 +33,7 @@ public class PerxGroupBuilder {
   }
 
   public static PerxGroupBuilder builder(String name, PermissionAdapter adapter) {
-    return delegate(PerxGroup.of(name, adapter));
+    return delegate(PerxGroup.ofAdapter(name, adapter));
   }
 
   public static PerxGroupBuilder builder(String name) {
@@ -83,7 +83,7 @@ public class PerxGroupBuilder {
 
   @CanIgnoreReturnValue
   public PerxGroupBuilder setPermission(String permission, boolean value) {
-    group.getPermissions().set(permission, value);
+    group.getRepository().set(permission, value);
     return this;
   }
 
@@ -100,7 +100,7 @@ public class PerxGroupBuilder {
   @CanIgnoreReturnValue
   public PerxGroupBuilder addPermissions(Map<String, Boolean> permissions) {
     if (permissions.isEmpty()) return this;
-    group.getPermissions().setAll(permissions);
+    group.getRepository().setAll(permissions);
     return this;
   }
 

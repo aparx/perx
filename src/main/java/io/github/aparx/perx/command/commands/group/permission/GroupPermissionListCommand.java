@@ -44,7 +44,7 @@ public class GroupPermissionListCommand extends AbstractGroupCommand {
     if (args.length() != 1) throw createSyntaxError(context);
     String permission = args.getString(0);
     ArrayPath arrayPath = ArrayPath.parse(permission);
-    PerxPermissionRepository permissionRegister = group.getPermissions();
+    PerxPermissionRepository permissionRegister = group.getRepository();
     @Nullable PerxPermission perm = permissionRegister.get(arrayPath);
     StringLookup lookup = new LookupPopulator()
         .put(ArrayPath.of("group"), group)
@@ -73,7 +73,7 @@ public class GroupPermissionListCommand extends AbstractGroupCommand {
       String filter = args.getString(1);
       @Nullable PerxGroup group = args.get(0).getGroup();
       if (group != null)
-        return group.getPermissions().toPermissionMap().keySet().stream()
+        return group.getRepository().toPermissionMap().keySet().stream()
             .filter((x) -> StringUtils.startsWithIgnoreCase(x, filter))
             .collect(Collectors.toList());
     }

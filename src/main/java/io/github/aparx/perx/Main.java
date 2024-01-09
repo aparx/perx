@@ -6,17 +6,19 @@ import io.github.aparx.perx.config.ConfigManager;
 import io.github.aparx.perx.config.configs.DatabaseConfig;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.database.PerxDatabase;
-import io.github.aparx.perx.group.PerxGroupBuilder;
 import io.github.aparx.perx.group.style.ScoreboardGroupStyleExecutor;
+import io.github.aparx.perx.permission.AttachingPermissionAdapter;
+import io.github.aparx.perx.permission.PermissionAdapter;
+import io.github.aparx.perx.permission.PermissionAdapterFactory;
 import io.github.aparx.perx.utils.BukkitThreads;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 /**
@@ -26,6 +28,9 @@ import java.util.logging.Level;
  */
 public final class Main extends JavaPlugin implements Listener {
 
+  private static final PermissionAdapterFactory PERMISSION_ADAPTER_FACTORY =
+      (__) -> new AttachingPermissionAdapter(Perx.getPlugin());
+
   private @Nullable ScoreboardGroupStyleExecutor styleExecutor;
 
   @Override
@@ -34,7 +39,7 @@ public final class Main extends JavaPlugin implements Listener {
     PerxDatabase database = new PerxDatabase();
     // Call `clear` on style executor in case disable was not called before
     (this.styleExecutor = new ScoreboardGroupStyleExecutor()).clear();
-    if (!perx.load(this, database, styleExecutor))
+    if (!perx.load(this, database, styleExecutor, PERMISSION_ADAPTER_FACTORY))
       throw new IllegalStateException("Could not load Perx");
     connectDatabase(database).exceptionally((ex) -> {
       Perx.getLogger().log(Level.SEVERE, "Error with database (forgot setup?)", ex);

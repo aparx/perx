@@ -16,12 +16,13 @@ import io.github.aparx.perx.group.intersection.PerxUserGroupService;
 import io.github.aparx.perx.listeners.DefaultListener;
 import io.github.aparx.perx.message.MessageMap;
 import io.github.aparx.perx.message.MessageRepository;
+import io.github.aparx.perx.permission.PermissionAdapter;
+import io.github.aparx.perx.permission.PermissionAdapterFactory;
 import io.github.aparx.perx.sign.PerxSignManager;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.PerxUserManager;
 import io.github.aparx.perx.user.PerxUserService;
 import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -31,6 +32,7 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,6 +54,8 @@ public final class Perx {
   private volatile boolean loaded;
 
   private @Nullable Plugin plugin;
+  private @Nullable PermissionAdapterFactory permissionAdapterFactory;
+
   private @Nullable PerxUserService userService;
   private @Nullable PerxGroupService groupService;
   private @Nullable PerxGroupHandler groupHandler;
@@ -60,6 +64,7 @@ public final class Perx {
   private @Nullable PerxGroupUpdateTask groupUpdateTask;
   private @Nullable ConfigManager configManager;
   private @Nullable PerxSignManager signManager;
+
   private Logger logger = Bukkit.getLogger();
 
   private Perx() {}
@@ -82,6 +87,10 @@ public final class Perx {
     if (val == null)
       throw new IllegalArgumentException(message);
     return val;
+  }
+
+  public boolean isLoaded() {
+    return loaded;
   }
 
   public Database getDatabase() {
@@ -120,13 +129,20 @@ public final class Perx {
     return messages;
   }
 
-  public boolean isLoaded() {
-    return loaded;
+  public PermissionAdapterFactory getPermissionAdapterFactory() {
+    return require(permissionAdapterFactory, "PermissionAdapter factory is null");
   }
 
   @CanIgnoreReturnValue
-  public boolean load(Plugin plugin, Database database, GroupStyleExecutor styleExecutor) {
-    Preconditions.checkNotNull(plugin, "Plugin must not be null");
+  public boolean load(
+      Plugin plugin,
+      Database database,
+      GroupStyleExecutor styleExecutor,
+      PermissionAdapterFactory factory) {
+    Preconditions.checkNotNull(plugin, "Plugin");
+    Preconditions.checkNotNull(database, "Database");
+    Preconditions.checkNotNull(styleExecutor, "Style executor");
+    Preconditions.checkNotNull(factory, "PermissionAdapter factory");
     if (loaded) return false;
     synchronized (lock) {
       if (loaded) return false;
@@ -134,6 +150,7 @@ public final class Perx {
         this.plugin = plugin;
         this.logger = plugin.getLogger();
         this.database = database;
+        this.permissionAdapterFactory = factory;
         listeners.forEach((x) -> Bukkit.getPluginManager().registerEvents(x, plugin));
         (this.configManager = new ConfigManager(plugin.getDataFolder())).load();
         (this.groupService = new PerxGroupManager(database)).load();

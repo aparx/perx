@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
@@ -38,7 +39,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
 
   private final String name;
   private final EnumMap<GroupStyleKey, @Nullable String> styles;
-  private final PerxPermissionRepository permissions;
+  private final PerxPermissionRepository repository;
 
   /** Defines the default state of this group */
   private boolean isDefault;
@@ -46,33 +47,42 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   /** The lower the priority, the more important this group is */
   private int priority = DEFAULT_PRIORITY;
 
-  private PerxGroup(String name, PerxPermissionRepository permissions) {
+  private PerxGroup(String name, Function<PerxGroup, PerxPermissionRepository> repositoryFactory) {
     Preconditions.checkNotNull(name, "Name must not be null");
-    Preconditions.checkNotNull(permissions, "Permissions must not be null");
     this.name = transformKey(name);
     this.styles = new EnumMap<>(GroupStyleKey.class);
-    this.permissions = permissions;
+    PerxPermissionRepository repository = repositoryFactory.apply(this);
+    Preconditions.checkNotNull(repository, "Permission repository must not be null");
+    Validate.noNullElements(repository, "Repository must not contain null elements");
+    this.repository = repository;
   }
 
   public static String transformKey(String name) {
     return name.toLowerCase(Locale.ENGLISH);
   }
 
-  public static PerxGroup of(String name, PerxPermissionRepository register) {
+  public static PerxGroup ofRepositoryFactory(
+      String name, Function<PerxGroup, PerxPermissionRepository> factory) {
     Validate.notEmpty(name, "Group name must not be empty");
-    Validate.noNullElements(register, "Permission must not be null");
     if (StringUtils.containsWhitespace(name))
       throw new IllegalArgumentException("Name must not contain whitespace");
-    return new PerxGroup(name, register);
+    return new PerxGroup(name, factory);
   }
 
-  public static PerxGroup of(String name, PermissionAdapter adapter) {
-    return of(name, new PerxPermissionMap(adapter));
+  public static PerxGroup ofRepository(String name, PerxPermissionRepository repository) {
+    return ofRepositoryFactory(name, (__) -> repository);
+  }
+
+  public static PerxGroup ofAdapter(String name, PermissionAdapter adapter) {
+    return ofRepository(name, new PerxPermissionMap(adapter));
+  }
+
+  public static PerxGroup ofAdapterFactory(String name, Function<PerxGroup, PermissionAdapter> factory) {
+    return ofRepositoryFactory(name, (group) -> new PerxPermissionMap(factory.apply(group)));
   }
 
   public static PerxGroup of(String name) {
-    // TODO put mutable factory within the current Perx instance
-    return of(name, new AttachingPermissionAdapter(Perx.getPlugin()));
+    return ofAdapterFactory(name, (x) -> Perx.getInstance().getPermissionAdapterFactory().createAdapter(x));
   }
 
   public static PerxGroup of(GroupModel model) {
@@ -86,7 +96,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   }
 
   public static PerxGroup copyOf(PerxGroup group) {
-    PerxGroup copy = of(group.name, group.permissions.copy());
+    PerxGroup copy = ofRepository(group.name, group.repository.copy());
     copy.setPriority(group.getPriority());
     copy.setDefault(group.isDefault());
     copy.styles.putAll(group.styles);
@@ -135,7 +145,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   @Override
   public GroupModel toModel() {
     GroupModel groupModel = new GroupModel(getName());
-    groupModel.setPermissions(permissions.toPermissionMap());
+    groupModel.setPermissions(repository.toPermissionMap());
     groupModel.setPrefix(getStyle(GroupStyleKey.PREFIX));
     groupModel.setSuffix(getStyle(GroupStyleKey.SUFFIX));
     groupModel.setDefault(isDefault());
@@ -184,8 +194,8 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return styles.get(key) != null;
   }
 
-  public PerxPermissionRepository getPermissions() {
-    return permissions;
+  public PerxPermissionRepository getRepository() {
+    return repository;
   }
 
   public int getPriority() {
@@ -209,7 +219,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return "PerxGroup{" +
         "name='" + name + '\'' +
         ", styles=" + styles +
-        ", permissions=" + permissions +
+        ", permissions=" + repository +
         ", defaultValue=" + isDefault +
         ", priority=" + priority +
         '}';
@@ -224,12 +234,12 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
         && isDefault == group.isDefault
         && Objects.equals(name, group.name)
         && Objects.equals(styles, group.styles)
-        && Objects.equals(permissions, group.permissions);
+        && Objects.equals(repository, group.repository);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, styles, permissions, priority);
+    return Objects.hash(name, styles, repository, priority);
   }
 
   @Override

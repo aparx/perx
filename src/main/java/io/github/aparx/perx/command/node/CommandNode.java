@@ -16,10 +16,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.server.TabCompleteEvent;
 import org.bukkit.permissions.Permissible;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
+import org.checkerframework.framework.qual.LiteralKind;
 
 import java.util.*;
 import java.util.function.Function;

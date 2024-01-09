@@ -120,7 +120,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   public void applyGroupToPlayer(Player player, PerxGroup group) {
     BukkitThreads.runOnPrimaryThread(() -> {
       if (!player.isOnline()) return;
-      PerxPermissionRepository register = group.getPermissions();
+      PerxPermissionRepository register = group.getRepository();
       register.getAdapter().clearPermissions(player);
       register.forEach((perm) -> perm.apply(player));
       PerxUserService userService = Perx.getInstance().getUserService();
@@ -135,7 +135,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   public void resetGroupFromPlayer(Player player, PerxGroup group) {
     BukkitThreads.runOnPrimaryThread(() -> {
       if (!player.isOnline()) return;
-      group.getPermissions().getAdapter().clearPermissions(player);
+      group.getRepository().getAdapter().clearPermissions(player);
       styleExecutor.reset(group, player);
       @Nullable PerxUser user = Perx.getInstance().getUserService().get(player);
       if (user != null)
