@@ -16,13 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.server.TabCompleteEvent;
 import org.bukkit.permissions.Permissible;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
-import org.checkerframework.framework.qual.LiteralKind;
 
 import java.util.*;
 import java.util.function.Function;
@@ -256,16 +253,18 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
         .collect(Collectors.toList());
   }
 
-  @SuppressWarnings("Guava")
-  protected List<String> tabCompletePlayers(CommandContext context, @Nullable String name) {
+  protected Stream<? extends Player> getPlayerCompletionStream(
+      CommandContext context, @Nullable String name) {
     Stream<? extends Player> stream = Bukkit.getOnlinePlayers().stream();
     if (context.isPlayer())
       stream = stream.filter(context.getPlayer()::canSee);
-    return stream.map(Player::getName)
-        .filter((name != null
-            ? (playerName) -> StringUtils.startsWithIgnoreCase(playerName, name)
-            : Predicates.alwaysTrue()))
-        .collect(Collectors.toList());
+    if (StringUtils.isNotEmpty(name))
+      stream = stream.filter((p) -> StringUtils.startsWithIgnoreCase(p.getName(), name));
+    return stream;
+  }
+
+  protected List<String> tabCompletePlayers(CommandContext context, @Nullable String name) {
+    return getPlayerCompletionStream(context, name).map(Player::getName).collect(Collectors.toList());
   }
 
   @Override

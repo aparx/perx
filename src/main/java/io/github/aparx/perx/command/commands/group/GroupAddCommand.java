@@ -21,6 +21,7 @@ import io.github.aparx.perx.utils.duration.DurationParser;
 import io.github.aparx.perx.utils.duration.DurationProcessor;
 import org.apache.commons.text.lookup.StringLookup;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
@@ -28,6 +29,7 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -86,9 +88,17 @@ public class GroupAddCommand extends AbstractGroupCommand {
 
   @Override
   public @Nullable List<String> tabComplete(CommandContext context, CommandArgumentList args) {
-    return (args.length() == 2
-        ? tabCompletePlayers(context, args.getString(1))
-        : super.tabComplete(context, args));
+    if (args.length() != 2) return super.tabComplete(context, args);
+    PerxUserService userService = Perx.getInstance().getUserService();
+    @Nullable PerxGroup group = args.first().getGroup();
+    return getPlayerCompletionStream(context, args.getString(1))
+        .filter((player) -> {
+          if (group == null) return true;
+          @Nullable PerxUser user = userService.get(player.getUniqueId());
+          return (user != null && !user.hasGroup(group.getName()));
+        })
+        .map(Player::getName)
+        .collect(Collectors.toList());
   }
 
   protected Duration parseDuration(String line) throws CommandError {

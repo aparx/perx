@@ -10,6 +10,7 @@ import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupHandler;
+import io.github.aparx.perx.group.intersection.PerxUserGroupService;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.PerxUser;
@@ -17,12 +18,14 @@ import io.github.aparx.perx.user.PerxUserService;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.text.lookup.StringLookup;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -67,7 +70,15 @@ public class GroupRemoveCommand extends AbstractGroupCommand {
   @Override
   public @Nullable List<String> tabComplete(CommandContext context, CommandArgumentList args) {
     if (args.length() != 2) return super.tabComplete(context, args);
-    // TODO only complete players that are in that group (through cache)
-    return tabCompletePlayers(context, args.getString(1));
+    PerxUserService userService = Perx.getInstance().getUserService();
+    @Nullable PerxGroup group = args.first().getGroup();
+    return getPlayerCompletionStream(context, args.getString(1))
+        .filter((player) -> {
+          if (group == null) return true;
+          @Nullable PerxUser user = userService.get(player.getUniqueId());
+          return (user != null && user.hasGroup(group.getName()));
+        })
+        .map(Player::getName)
+        .collect(Collectors.toList());
   }
 }

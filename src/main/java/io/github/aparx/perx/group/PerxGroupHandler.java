@@ -177,7 +177,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
     PerxUserGroupService userGroupService = Perx.getInstance().getUserGroupService();
     return groupService.delete(group.getName()).thenApply((res) -> {
       if (!res) return false;
-      group.forSubscribers((user) -> doUnsubscribeInCache(userGroupService, user, group));
+      group.forEach((user) -> doUnsubscribeInCache(userGroupService, user, group));
       return true;
     });
   }
@@ -195,7 +195,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
     PerxUserGroupService userGroupService = Perx.getInstance().getUserGroupService();
     return userGroupService.deleteByGroup(group.getName()).thenApply((res) -> {
       if (!res) return false;
-      group.forSubscribers((user) -> doUnsubscribeInCache(userGroupService, user, group));
+      group.forEach((user) -> doUnsubscribeInCache(userGroupService, user, group));
       return true;
     });
   }

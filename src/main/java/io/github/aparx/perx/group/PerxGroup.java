@@ -1,6 +1,7 @@
 package io.github.aparx.perx.group;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.AbstractIterator;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.j256.ormlite.dao.Dao;
 import io.github.aparx.perx.Perx;
@@ -23,7 +24,6 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 
@@ -33,7 +33,8 @@ import java.util.logging.Level;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public final class PerxGroup implements DatabaseConvertible<GroupModel>, Comparable<PerxGroup> {
+public final class PerxGroup implements DatabaseConvertible<GroupModel>, Comparable<PerxGroup>,
+    Iterable<PerxUser> {
 
   public static final int DEFAULT_PRIORITY = 50;
 
@@ -47,11 +48,12 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   /** The lower the priority, the more important this group is */
   private int priority = DEFAULT_PRIORITY;
 
-  private PerxGroup(String name, Function<PerxGroup, PerxPermissionRepository> repositoryFactory) {
+  private PerxGroup(String name, Function<PerxGroup, PerxPermissionRepository> factory) {
     Preconditions.checkNotNull(name, "Name must not be null");
+    Preconditions.checkNotNull(factory, "Factory must not be null");
     this.name = transformKey(name);
     this.styles = new EnumMap<>(GroupStyleKey.class);
-    PerxPermissionRepository repository = repositoryFactory.apply(this);
+    PerxPermissionRepository repository = factory.apply(this);
     Preconditions.checkNotNull(repository, "Permission repository must not be null");
     Validate.noNullElements(repository, "Repository must not contain null elements");
     this.repository = repository;
@@ -61,7 +63,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return name.toLowerCase(Locale.ENGLISH);
   }
 
-  public static PerxGroup ofRepositoryFactory(
+  public static PerxGroup ofRepository(
       String name, Function<PerxGroup, PerxPermissionRepository> factory) {
     Validate.notEmpty(name, "Group name must not be empty");
     if (StringUtils.containsWhitespace(name))
@@ -70,19 +72,19 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   }
 
   public static PerxGroup ofRepository(String name, PerxPermissionRepository repository) {
-    return ofRepositoryFactory(name, (__) -> repository);
+    return ofRepository(name, (__) -> repository);
   }
 
   public static PerxGroup ofAdapter(String name, PermissionAdapter adapter) {
     return ofRepository(name, new PerxPermissionMap(adapter));
   }
 
-  public static PerxGroup ofAdapterFactory(String name, Function<PerxGroup, PermissionAdapter> factory) {
-    return ofRepositoryFactory(name, (group) -> new PerxPermissionMap(factory.apply(group)));
+  public static PerxGroup ofAdapter(String name, Function<PerxGroup, PermissionAdapter> factory) {
+    return ofRepository(name, (group) -> new PerxPermissionMap(factory.apply(group)));
   }
 
   public static PerxGroup of(String name) {
-    return ofAdapterFactory(name, (x) -> Perx.getInstance().getPermissionAdapterFactory().createAdapter(x));
+    return ofAdapter(name, Perx.getInstance().getPermissionAdapterFactory()::createAdapter);
   }
 
   public static PerxGroup of(GroupModel model) {
@@ -117,17 +119,10 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
 
   public void updatePlayers() {
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
-    forPlayers((user, player) -> groupHandler.reinitializePlayer(player));
+    forEachOnline((user, player) -> groupHandler.reinitializePlayer(player));
   }
 
-  public void forSubscribers(Consumer<PerxUser> action) {
-    Perx.getInstance().getUserService().forEach((user) -> {
-      if (user.hasGroup(getName()))
-        action.accept(user);
-    });
-  }
-
-  public void forPlayers(BiConsumer<PerxUser, Player> action) {
+  public void forEachOnline(BiConsumer<PerxUser, Player> action) {
     BukkitThreads.runOnPrimaryThread(() -> {
       PerxUserService userService = Perx.getInstance().getUserService();
       Bukkit.getOnlinePlayers().forEach((player) -> {
@@ -247,4 +242,28 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return compare(this, o);
   }
 
+  /**
+   * Returns a new iterator, that iterates over all concurrent user instances within the cache
+   * and filters out all users, that are subscribed to this group.
+   *
+   * @return a new iterator containing all (cached) users of this group
+   */
+  @Override
+  public Iterator<PerxUser> iterator() {
+    Iterator<PerxUser> iterator = Perx.getInstance().getUserService().iterator();
+    return new AbstractIterator<>() {
+      @Nullable
+      @Override
+      protected PerxUser computeNext() {
+        if (!iterator.hasNext())
+          return endOfData();
+        @Nullable PerxUser user = iterator.next();
+        if (!user.hasGroup(getName()))
+          user = computeNext();
+        if (user == null)
+          return endOfData();
+        return user;
+      }
+    };
+  }
 }
