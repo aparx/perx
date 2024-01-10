@@ -19,7 +19,7 @@ import java.util.Map;
  * @since 1.0
  */
 public enum GroupUpdateField {
-
+  
   PREFIX((group, list) -> {
     int maxLength = GroupStyleKey.PREFIX.getMaxLength();
     String value = list.join();

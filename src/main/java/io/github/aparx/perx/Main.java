@@ -8,7 +8,6 @@ import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.database.PerxDatabase;
 import io.github.aparx.perx.group.style.ScoreboardGroupStyleExecutor;
 import io.github.aparx.perx.permission.AttachingPermissionAdapter;
-import io.github.aparx.perx.permission.PermissionAdapter;
 import io.github.aparx.perx.permission.PermissionAdapterFactory;
 import io.github.aparx.perx.utils.BukkitThreads;
 import org.bukkit.Bukkit;
@@ -18,7 +17,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 
 /**
