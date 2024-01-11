@@ -10,7 +10,6 @@ import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupHandler;
-import io.github.aparx.perx.group.PerxGroupRepository;
 import io.github.aparx.perx.group.PerxGroupService;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;

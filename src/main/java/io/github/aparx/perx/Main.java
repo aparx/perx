@@ -6,12 +6,15 @@ import io.github.aparx.perx.config.ConfigManager;
 import io.github.aparx.perx.config.configs.DatabaseConfig;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.database.PerxDatabase;
+import io.github.aparx.perx.events.PerxGroupMutateEvent;
+import io.github.aparx.perx.events.PerxMutateType;
 import io.github.aparx.perx.group.style.ScoreboardGroupStyleExecutor;
 import io.github.aparx.perx.permission.AttachingPermissionAdapter;
 import io.github.aparx.perx.permission.PermissionAdapterFactory;
 import io.github.aparx.perx.utils.BukkitThreads;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -58,7 +61,7 @@ public final class Main extends JavaPlugin implements Listener {
     if (styleExecutor != null && Perx.getInstance().isLoaded())
       styleExecutor.clear();
     if (!Perx.getInstance().unload())
-      throw new IllegalStateException("Could not unload Perx");
+      Perx.getLogger().log(Level.SEVERE, "Could not unload Perx");
   }
 
   private CompletableFuture<?> connectDatabase(Database database) {

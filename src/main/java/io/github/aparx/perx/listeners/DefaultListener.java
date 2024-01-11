@@ -2,6 +2,8 @@ package io.github.aparx.perx.listeners;
 
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.events.GroupsFetchedEvent;
+import io.github.aparx.perx.events.PerxGroupMutateEvent;
+import io.github.aparx.perx.events.PerxMutateType;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.UserCacheStrategy;

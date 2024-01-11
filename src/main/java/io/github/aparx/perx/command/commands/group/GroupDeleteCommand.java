@@ -3,7 +3,6 @@ package io.github.aparx.perx.command.commands.group;
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.PerxPermissions;
 import io.github.aparx.perx.command.CommandContext;
-import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.errors.CommandError;
 import io.github.aparx.perx.command.node.CommandNode;
