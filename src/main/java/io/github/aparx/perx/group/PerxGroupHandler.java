@@ -173,7 +173,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
       styleExecutor.reset(group, player);
       @Nullable PerxUser user = Perx.getInstance().getUserService().get(player);
       if (user != null)
-        // Fix for https://github.com/aparx/perx/issues/2
+        // Temporary fix for: https://github.com/aparx/perx/issues/2
         applyHighestPossibleStyle(user);
     });
   }
@@ -219,9 +219,9 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
     PerxGroupService groupService = Perx.getInstance().getGroupService();
     PerxUserGroupService userGroupService = Perx.getInstance().getUserGroupService();
     return groupService.delete(group.getName()).thenApply((res) -> {
-      if (!res) return false;
+      // force unsubscribe in cache, even if the database interaction failed
       group.forEach((user) -> doUnsubscribeInCache(userGroupService, user, group));
-      return true;
+      return res;
     });
   }
 
@@ -237,9 +237,9 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   public CompletableFuture<Boolean> unsubscribe(PerxGroup group) {
     PerxUserGroupService userGroupService = Perx.getInstance().getUserGroupService();
     return userGroupService.deleteByGroup(group.getName()).thenApply((res) -> {
-      if (!res) return false;
+      // force unsubscribe in cache, even if the database interaction failed
       group.forEach((user) -> doUnsubscribeInCache(userGroupService, user, group));
-      return true;
+      return res;
     });
   }
 
@@ -252,9 +252,9 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
             ? database.executeAsync(() -> service.getDao().deleteById(userGroup.getId()))
             : CompletableFuture.completedFuture(1)
         ).thenApply((result) -> {
-          if (result < 1) return false;
+          // force unsubscribe in cache, even if the database interaction failed
           doUnsubscribeInCache(service, user, userGroup.getGroupName(), userGroup.findGroup());
-          return true;
+          return result < 1;
         }));
   }
 
@@ -272,15 +272,15 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
           DeleteBuilder<UserGroupModel, Long> deleteBuilder =
               service.getDao().deleteBuilder();
           deleteBuilder.limit(1L).where()
-              // unique combo index should force O(1) in engine's register
+              // unique combo index should force O(1) lookup in database engine
               .eq(UserGroupModel.USER_ID_FIELD_NAME, user.getId()).and()
               .eq(UserGroupModel.GROUP_ID_FIELD_NAME, group.getName());
           return deleteBuilder.delete();
         })
-        .thenApply((result) -> {
-          // we force the unsubscribe in cache anyway (for default groups in cache)
+        .thenApply((res) -> {
+          // force unsubscribe in cache, even if the database interaction failed
           doUnsubscribeInCache(service, user, group.getName(), group);
-          return result != 0;
+          return res != 0;
         }));
   }
 

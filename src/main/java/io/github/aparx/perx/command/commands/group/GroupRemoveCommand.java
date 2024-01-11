@@ -56,8 +56,8 @@ public class GroupRemoveCommand extends AbstractGroupCommand {
     });
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
     context.respond(Message.GENERIC_LOADING);
-    ((CompletableFuture<@Nullable Boolean>)
-        groupHandler.unsubscribe(target.getUniqueId(), group.getName()))
+    //noinspection NullableProblems,DataFlowIssue
+    groupHandler.unsubscribe(target.getUniqueId(), group.getName())
         .exceptionally((__) -> null)
         .thenAccept((@Nullable Boolean res) -> {
           StringLookup lookup = populator.getLookup();
