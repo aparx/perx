@@ -95,7 +95,7 @@ public class HelpCommand extends CommandNode {
     PageContainerDecorator<CommandNode, List<CommandNode>> pages =
         PageContainerDecorator.of(MAX_NODES_PER_PAGE);
     pages.addElements(descriptiveNodes.get().stream()
-        .filter((node) -> node.hasPermission(sender))
+        .filter((node) -> node.isAuthorized(sender))
         .collect(Collectors.toList()));
     return pages;
   }

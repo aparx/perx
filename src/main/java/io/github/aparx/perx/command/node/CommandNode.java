@@ -8,7 +8,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import io.github.aparx.perx.command.CommandContext;
 import io.github.aparx.perx.command.args.CommandArgumentList;
 import io.github.aparx.perx.command.errors.CommandError;
-import io.github.aparx.perx.command.errors.CommandPermissionError;
+import io.github.aparx.perx.command.errors.CommandAuthorizationError;
 import io.github.aparx.perx.command.errors.CommandSyntaxError;
 import io.github.aparx.perx.utils.ArrayPath;
 import org.apache.commons.lang3.ArrayUtils;
@@ -173,7 +173,7 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
     return children.get(createNameKey(name));
   }
 
-  public boolean hasPermission(Permissible permissible) {
+  public boolean isAuthorized(Permissible permissible) {
     CommandNodeInfo info = getInfo();
     ImmutableList<String> permissions = info.permissions();
     if (info.hasPermission())
@@ -199,16 +199,16 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
   @Override
   public @Nullable List<String> tabComplete(CommandContext context, CommandArgumentList args) {
     CommandSender sender = context.sender();
-    if (args.isEmpty() || !hasPermission(sender))
+    if (args.isEmpty() || !isAuthorized(sender))
       return List.of();
     @Nullable CommandNode child = getChild(args.getString(0));
-    if (child != null && !child.hasPermission(sender))
+    if (child != null && !child.isAuthorized(sender))
       return List.of();
     @Nullable List<String> strings = (child != null
         ? child.tabComplete(context, args.skip())
         : null);
     if (strings != null) return strings;
-    return tabCompleteChildren(context, createNameFilterPredicate(args.getString(0)));
+    return getCompletingChildren(context, createNameFilterPredicate(args.getString(0)));
   }
 
   @Override
@@ -232,28 +232,28 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
     child.execute(context, args.skip());
   }
 
-  protected CommandError createPermissionError() {
-    return new CommandPermissionError(this);
+  protected CommandError createAuthorizationError() {
+    return new CommandAuthorizationError(this);
   }
 
-  protected CommandError createPermissionError(String permission) {
-    return new CommandPermissionError(permission);
+  protected CommandError createAuthorizationError(String permission) {
+    return new CommandAuthorizationError(permission);
   }
 
   protected CommandError createSyntaxError(CommandContext context) {
     return new CommandSyntaxError(context, this);
   }
 
-  protected @Nullable List<String> tabCompleteChildren(
+  protected @Nullable List<String> getCompletingChildren(
       CommandContext context, Predicate<CommandNode> nodeFilter) {
     return children.values().stream()
         .filter(nodeFilter)
-        .filter((node) -> node.hasPermission(context.sender()))
+        .filter((node) -> node.isAuthorized(context.sender()))
         .map((node) -> node.getInfo().name())
         .collect(Collectors.toList());
   }
 
-  protected Stream<? extends Player> getPlayerCompletionStream(
+  protected Stream<? extends Player> getCompletingPlayerStream(
       CommandContext context, @Nullable String name) {
     Stream<? extends Player> stream = Bukkit.getOnlinePlayers().stream();
     if (context.isPlayer())
@@ -263,8 +263,8 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
     return stream;
   }
 
-  protected List<String> tabCompletePlayers(CommandContext context, @Nullable String name) {
-    return getPlayerCompletionStream(context, name).map(Player::getName).collect(Collectors.toList());
+  protected List<String> getCompletingPlayers(CommandContext context, @Nullable String name) {
+    return getCompletingPlayerStream(context, name).map(Player::getName).collect(Collectors.toList());
   }
 
   @Override

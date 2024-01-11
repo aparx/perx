@@ -51,7 +51,7 @@ public class InfoCommand extends CommandNode {
     if (context.isPlayer()
         && targetPlayer.equals(context.getPlayer())
         && !sender.hasPermission(PerxPermissions.PERMISSION_INFO_OTHER))
-      throw createPermissionError(PerxPermissions.PERMISSION_INFO_OTHER);
+      throw createAuthorizationError(PerxPermissions.PERMISSION_INFO_OTHER);
 
     PerxUserService userService = Perx.getInstance().getUserService();
     context.respond(StringUtils.SPACE);
@@ -103,7 +103,7 @@ public class InfoCommand extends CommandNode {
   @Override
   public @Nullable List<String> tabComplete(CommandContext context, CommandArgumentList args) {
     return (args.length() == 1
-        ? tabCompletePlayers(context, args.getString(0))
+        ? getCompletingPlayers(context, args.getString(0))
         : super.tabComplete(context, args));
   }
 }

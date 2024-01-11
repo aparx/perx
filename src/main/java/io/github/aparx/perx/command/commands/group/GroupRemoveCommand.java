@@ -10,7 +10,6 @@ import io.github.aparx.perx.command.node.CommandNode;
 import io.github.aparx.perx.command.node.CommandNodeInfo;
 import io.github.aparx.perx.group.PerxGroup;
 import io.github.aparx.perx.group.PerxGroupHandler;
-import io.github.aparx.perx.group.intersection.PerxUserGroupService;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.PerxUser;
@@ -72,11 +71,11 @@ public class GroupRemoveCommand extends AbstractGroupCommand {
     if (args.length() != 2) return super.tabComplete(context, args);
     PerxUserService userService = Perx.getInstance().getUserService();
     @Nullable PerxGroup group = args.first().getGroup();
-    return getPlayerCompletionStream(context, args.getString(1))
+    return getCompletingPlayerStream(context, args.getString(1))
         .filter((player) -> {
           if (group == null) return true;
           @Nullable PerxUser user = userService.get(player.getUniqueId());
-          return (user != null && user.hasGroup(group.getName()));
+          return user == null || user.hasGroup(group.getName());
         })
         .map(Player::getName)
         .collect(Collectors.toList());
