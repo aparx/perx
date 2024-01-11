@@ -48,7 +48,7 @@ public final class Main extends JavaPlugin implements Listener {
     PerxCommand perxCommand = PerxCommand.getInstance();
     String commandName = perxCommand.getRoot().getInfo().name();
     PluginCommand command = getCommand(commandName);
-    Preconditions.checkNotNull(command, "Command " + commandName + " unknown");
+    Preconditions.checkNotNull(command);
     command.setTabCompleter(perxCommand);
     command.setExecutor(perxCommand);
   }

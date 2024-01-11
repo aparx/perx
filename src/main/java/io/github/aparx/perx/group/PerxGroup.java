@@ -28,8 +28,14 @@ import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
+ * Permission group that bundles permissions and styles into a named entity.
+ * <p>This object differs from the {@link GroupModel}, as in that this is actually used and
+ * interacted with at runtime, whereas the model is just a database representation of this object
+ * (POJO).
+ *
  * @author aparx (Vinzent Z.)
  * @version 2024-01-04 00:31
+ * @see GroupModel
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
@@ -40,7 +46,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
 
   private final String name;
   private final EnumMap<GroupStyleKey, @Nullable String> styles;
-  private final PerxPermissionRepository repository;
+  private final PerxPermissionRepository permissionRepository;
 
   /** Defines the default state of this group */
   private boolean isDefault;
@@ -56,7 +62,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     PerxPermissionRepository repository = factory.apply(this);
     Preconditions.checkNotNull(repository, "Permission repository must not be null");
     Validate.noNullElements(repository, "Repository must not contain null elements");
-    this.repository = repository;
+    this.permissionRepository = repository;
   }
 
   public static String transformKey(String name) {
@@ -98,7 +104,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   }
 
   public static PerxGroup copyOf(PerxGroup group) {
-    PerxGroup copy = ofRepository(group.name, group.repository.copy());
+    PerxGroup copy = ofRepository(group.name, group.permissionRepository.copy());
     copy.setPriority(group.getPriority());
     copy.setDefault(group.isDefault());
     copy.styles.putAll(group.styles);
@@ -117,11 +123,22 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return name;
   }
 
+  /**
+   * Updates all players of this group in the current or next tick of the primary thread.
+   * <p>The update is defined such that all online players of this group will be reinitialized.
+   */
   public void updatePlayers() {
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
     forEachOnline((user, player) -> groupHandler.reinitializePlayer(player));
   }
 
+  /**
+   * Iterates over every online player that subscribes to this group and calls {@code action} on
+   * each that has been located successfully.
+   * <p>The iteration happens on the current or next tick of the primary thread.
+   *
+   * @param action the callback responsible for handling the online subscribers
+   */
   public void forEachOnline(BiConsumer<PerxUser, Player> action) {
     BukkitThreads.runOnPrimaryThread(() -> {
       PerxUserService userService = Perx.getInstance().getUserService();
@@ -133,14 +150,25 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     });
   }
 
-  public String createCustomName(String playerName) {
-    return Perx.getInstance().getGroupHandler().styleExecutor().createDisplayName(this, playerName);
+  /**
+   * Creates a new display name using given {@code entityName}.
+   *
+   * @param entityName the (custom) name of the entity, being affected by the style.
+   * @return the custom display name
+   */
+  public String createDisplayName(String entityName) {
+    return Perx.getInstance().getGroupHandler().styleExecutor().createDisplayName(this, entityName);
   }
 
+  /**
+   * Converts this group into a new database model representation.
+   *
+   * @return the newly allocated group model
+   */
   @Override
   public GroupModel toModel() {
     GroupModel groupModel = new GroupModel(getName());
-    groupModel.setPermissions(repository.toPermissionMap());
+    groupModel.setPermissions(permissionRepository.toPermissionMap());
     groupModel.setPrefix(getStyle(GroupStyleKey.PREFIX));
     groupModel.setSuffix(getStyle(GroupStyleKey.SUFFIX));
     groupModel.setDefault(isDefault());
@@ -168,10 +196,19 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return Perx.getInstance().getGroupHandler().delete(this);
   }
 
+  /**
+   * Updates the style at {@code key} to given {@code value}.
+   * <p>If {@code value} is null or empty, the style is being removed from this group.
+   *
+   * @param key   the key to assign the style to
+   * @param value the value, being the actual style, whereas null or an empty string represent
+   *              nothingness, such that the style is removed
+   * @return the potentially previously associated value with {@code key}
+   */
   @CanIgnoreReturnValue
   public @Nullable String setStyle(GroupStyleKey key, @Nullable String value) {
     Preconditions.checkNotNull(key, "Key must not be null");
-    return (value != null
+    return (StringUtils.isNotEmpty(value)
         ? styles.put(key, ChatColor.translateAlternateColorCodes('&', value))
         : styles.remove(key));
   }
@@ -181,22 +218,47 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return styles.get(key);
   }
 
+  /**
+   * Returns true if this group has any style applied to it at all.
+   *
+   * @return true if this group has any (custom) styling
+   */
   public boolean hasStyle() {
     return Arrays.stream(GroupStyleKey.values()).anyMatch(this::hasStyle);
   }
 
+  /**
+   * Returns true if this group has a custom style for {@code key}.
+   * <p>True is returned, if the style at given {@code key} is neither null nor empty.
+   *
+   * @param key the target style to test
+   * @return true if this group has a style applied at {@code key}
+   */
   public boolean hasStyle(GroupStyleKey key) {
-    return styles.get(key) != null;
+    return StringUtils.isNotEmpty(styles.get(key));
   }
 
-  public PerxPermissionRepository getRepository() {
-    return repository;
+  public PerxPermissionRepository getPermissionRepository() {
+    return permissionRepository;
   }
 
+  /**
+   * Returns the priority of this group (natural order).
+   * <p>The lower the returning value, the more important this group becomes.
+   *
+   * @return the priority of this group, lower meaning more important
+   */
   public int getPriority() {
     return priority;
   }
 
+  /**
+   * Updates the priority of this group to given {@code priority}.
+   * <p>The lower the priority, the more important this group becomes.
+   *
+   * @param priority the new priority of this group
+   * @apiNote Note that previously allocated group models will not have this applied automatically.
+   */
   public void setPriority(int priority) {
     this.priority = priority;
   }
@@ -214,7 +276,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     return "PerxGroup{" +
         "name='" + name + '\'' +
         ", styles=" + styles +
-        ", permissions=" + repository +
+        ", permissions=" + permissionRepository +
         ", defaultValue=" + isDefault +
         ", priority=" + priority +
         '}';
@@ -229,12 +291,12 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
         && isDefault == group.isDefault
         && Objects.equals(name, group.name)
         && Objects.equals(styles, group.styles)
-        && Objects.equals(repository, group.repository);
+        && Objects.equals(permissionRepository, group.permissionRepository);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, styles, repository, priority);
+    return Objects.hash(name, styles, permissionRepository, priority);
   }
 
   @Override

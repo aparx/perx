@@ -61,7 +61,7 @@ public class GroupInfoCommand extends AbstractGroupCommand {
       pages.addElement(createKeyValueLine(
           StringUtils.capitalize(key.name().toLowerCase(Locale.ENGLISH)),
           group.getStyle(key)));
-    PerxPermissionRepository permissions = group.getRepository();
+    PerxPermissionRepository permissions = group.getPermissionRepository();
     int size = permissions.size();
     pages.addElement(createKeyValueLine("Default", group.isDefault()));
     pages.addElement(createKeyValueLine("Priority", group.getPriority()));

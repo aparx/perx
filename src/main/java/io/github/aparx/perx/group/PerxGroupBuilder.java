@@ -83,7 +83,7 @@ public class PerxGroupBuilder {
 
   @CanIgnoreReturnValue
   public PerxGroupBuilder setPermission(String permission, boolean value) {
-    group.getRepository().set(permission, value);
+    group.getPermissionRepository().set(permission, value);
     return this;
   }
 
@@ -100,7 +100,7 @@ public class PerxGroupBuilder {
   @CanIgnoreReturnValue
   public PerxGroupBuilder addPermissions(Map<String, Boolean> permissions) {
     if (permissions.isEmpty()) return this;
-    group.getRepository().setAll(permissions);
+    group.getPermissionRepository().setAll(permissions);
     return this;
   }
 

@@ -10,6 +10,7 @@ import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.message.Message;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -19,7 +20,7 @@ import java.util.Map;
  * @since 1.0
  */
 public enum GroupUpdateField {
-  
+
   PREFIX((group, list) -> {
     int maxLength = GroupStyleKey.PREFIX.getMaxLength();
     String value = list.join();
@@ -42,17 +43,17 @@ public enum GroupUpdateField {
 
   DEFAULT((group, list) -> {
     group.setDefault(!list.isEmpty() && list.first().getBoolean());
-  }, ImmutableList.of("true", "false"));
+  }, List.of("true", "false"));
 
   private final String name;
   private final FieldExecutor fieldExecutor;
-  private final ImmutableList<String> suggestions;
+  private final List<String> suggestions;
 
   GroupUpdateField(FieldExecutor fieldExecutor) {
     this(fieldExecutor, ImmutableList.of());
   }
 
-  GroupUpdateField(FieldExecutor fieldExecutor, ImmutableList<String> suggestions) {
+  GroupUpdateField(FieldExecutor fieldExecutor, List<String> suggestions) {
     Preconditions.checkNotNull(fieldExecutor, "Executor must not be null");
     Preconditions.checkNotNull(suggestions, "Suggestions must not be null");
     this.name = name().toLowerCase(Locale.ENGLISH);
@@ -68,7 +69,7 @@ public enum GroupUpdateField {
     return fieldExecutor;
   }
 
-  public ImmutableList<String> getSuggestions() {
+  public List<String> getSuggestions() {
     return suggestions;
   }
 

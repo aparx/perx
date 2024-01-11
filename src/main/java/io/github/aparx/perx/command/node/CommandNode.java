@@ -175,10 +175,8 @@ public class CommandNode implements CommandNodeExecutor, Iterable<CommandNode> {
 
   public boolean isAuthorized(Permissible permissible) {
     CommandNodeInfo info = getInfo();
-    ImmutableList<String> permissions = info.permissions();
-    if (info.hasPermission())
-      return permissions.stream().anyMatch(permissible::hasPermission);
-    return true;
+    if (!info.hasPermission()) return true;
+    return info.permissions().stream().anyMatch(permissible::hasPermission);
   }
 
   /**

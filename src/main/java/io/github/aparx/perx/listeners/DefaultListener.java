@@ -6,6 +6,7 @@ import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.UserCacheStrategy;
 import io.github.aparx.perx.utils.ArrayPath;
+import io.github.aparx.perx.utils.BukkitThreads;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,9 +27,10 @@ public final class DefaultListener implements Listener {
 
   @EventHandler
   public void onLoad(GroupsFetchedEvent ignored) {
-    Bukkit.getOnlinePlayers().forEach((player) -> {
+    // we just may want to ensure we run on the primary thread, due to the event's call source
+    BukkitThreads.runOnPrimaryThread(() -> Bukkit.getOnlinePlayers().forEach((player) -> {
       Perx.getInstance().getGroupHandler().reinitializePlayer(player);
-    });
+    }));
   }
 
   @EventHandler(priority = EventPriority.MONITOR)
@@ -39,7 +41,7 @@ public final class DefaultListener implements Listener {
           .fetchOrGet(event.getUniqueId(), UserCacheStrategy.AUTO);
   }
 
-  @EventHandler(priority = EventPriority.HIGH)
+  @EventHandler(priority = EventPriority.HIGHEST)
   public void onJoin(PlayerJoinEvent event) {
     Player player = event.getPlayer();
     if (event.getJoinMessage() == null) return;

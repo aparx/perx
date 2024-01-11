@@ -125,7 +125,7 @@ public class LookupPopulator {
         put(prefix.add("group"), userGroup);
         @Nullable PerxGroup group = userGroup.findGroup();
         if (group != null)
-          put(prefix.add("displayName"), group.createCustomName(player.getName()));
+          put(prefix.add("displayName"), group.createDisplayName(player.getName()));
       });
     return this;
   }

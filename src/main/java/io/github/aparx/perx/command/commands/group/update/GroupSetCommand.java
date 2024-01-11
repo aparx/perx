@@ -63,7 +63,6 @@ public class GroupSetCommand extends CommandNode {
     protected void execute(CommandContext context, CommandArgumentList args, PerxGroup group) throws CommandError {
       GroupUpdateField.FieldExecutor fieldExecutor = field.getFieldExecutor();
       fieldExecutor.execute(group, args);
-      CommandSender sender = context.sender();
       StringLookup lookup = new LookupPopulator()
           .put(ArrayPath.of("context"), context)
           .put(ArrayPath.of("group"), group, /*nil*/ "none")
@@ -83,7 +82,7 @@ public class GroupSetCommand extends CommandNode {
     @Override
     public @Nullable List<String> tabComplete(CommandContext context, CommandArgumentList args) {
       if (args.length() == 2) {
-        ImmutableList<String> suggestions = field.getSuggestions();
+        List<String> suggestions = field.getSuggestions();
         if (!suggestions.isEmpty()) return suggestions;
       }
       return super.tabComplete(context, args);

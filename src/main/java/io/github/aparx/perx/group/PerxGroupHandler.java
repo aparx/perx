@@ -60,21 +60,43 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
         .forEach((userGroup) -> doSubscribeInCache(service, user, userGroup));
   }
 
-  public void unsubscribeIfPastEndDate(PerxUserGroup userGroup) {
-    if (userGroup.isMarkedRemoved()) return;
-    @Nullable Date end = userGroup.getEndingDate();
-    if (!userGroup.isGroupValid() || end != null && System.currentTimeMillis() > end.getTime())
+  /**
+   * Calls {@code unsubscribe} with given user group if it is either invalid or expired.
+   *
+   * @param userGroup the group to test and potentially unsubscribe
+   */
+  public void unsubscribeIfNeeded(PerxUserGroup userGroup) {
+    if (!userGroup.isMarkedRemoved() && (!userGroup.isGroupValid() || userGroup.isExpired()))
       unsubscribe(userGroup);
   }
 
+  /**
+   * Applies the (optional) style and permissions of given user group to its user, if the user is
+   * currently online. This is ensured to happen on the primary thread.
+   * <p>If given user group either became invalid or expired, the group is automatically
+   * unsubscribed asynchronously and the group marked as removed, thus hindering the application
+   * of the styles and permissions.
+   *
+   * @param userGroup the user group to be applied to its player
+   */
   public void applyUserGroupToPlayer(PerxUserGroup userGroup) {
-    unsubscribeIfPastEndDate(userGroup);
-    @Nullable PerxGroup group = userGroup.findGroup();
-    @Nullable Player player = Bukkit.getPlayer(userGroup.getUserId());
-    if (!userGroup.isMarkedRemoved() && player != null && group != null)
-      applyGroupToPlayer(player, group);
+    unsubscribeIfNeeded(userGroup);
+    if (!userGroup.isMarkedRemoved())
+      BukkitThreads.runOnPrimaryThread(() -> {
+        @Nullable PerxGroup group = userGroup.findGroup();
+        @Nullable Player player = Bukkit.getPlayer(userGroup.getUserId());
+        if (!userGroup.isMarkedRemoved() && player != null && group != null)
+          applyGroupToPlayer(player, group);
+      });
   }
 
+  /**
+   * Completely reinitializes {@code player}, such that styles, permissions and more are unset
+   * and then reset, depending on the player's subscribed (user-) groups.
+   *
+   * @param player the player to reinitialize
+   * @return a void returning promise, indicating when the reinitialization is done
+   */
   @CanIgnoreReturnValue
   public CompletableFuture<Void> reinitializePlayer(Player player) {
     Collection<PerxGroup> defaults = Perx.getInstance().getGroupService().getDefaults();
@@ -94,6 +116,11 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
         });
   }
 
+  /**
+   * Reinitializes all online players on the primary thread.
+   *
+   * @see #reinitializePlayer(Player)
+   */
   public void reinitializeAllPlayers() {
     BukkitThreads.runOnPrimaryThread(() -> {
       Bukkit.getOnlinePlayers().forEach(this::reinitializePlayer);
@@ -120,7 +147,7 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
   public void applyGroupToPlayer(Player player, PerxGroup group) {
     BukkitThreads.runOnPrimaryThread(() -> {
       if (!player.isOnline()) return;
-      PerxPermissionRepository register = group.getRepository();
+      PerxPermissionRepository register = group.getPermissionRepository();
       register.getAdapter().clearPermissions(player);
       register.forEach((perm) -> perm.apply(player));
       PerxUserService userService = Perx.getInstance().getUserService();
@@ -132,10 +159,17 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
     });
   }
 
+  /**
+   * Removes all styles, permissions and more from {@code group} for {@code player}.
+   * <p>This is ensured to happen on the primary thread.
+   *
+   * @param player the target player to be affected by the reset
+   * @param group  the group that is supposed to be reset for {@code player}
+   */
   public void resetGroupFromPlayer(Player player, PerxGroup group) {
     BukkitThreads.runOnPrimaryThread(() -> {
       if (!player.isOnline()) return;
-      group.getRepository().getAdapter().clearPermissions(player);
+      group.getPermissionRepository().getAdapter().clearPermissions(player);
       styleExecutor.reset(group, player);
       @Nullable PerxUser user = Perx.getInstance().getUserService().get(player);
       if (user != null)
@@ -144,6 +178,15 @@ public record PerxGroupHandler(Database database, GroupStyleExecutor styleExecut
     });
   }
 
+  /**
+   * Applies the highest possible style for {@code user} of groups they are subscribed to.
+   * <p>The highest possible style is the style of any group that contains any custom styling,
+   * whose priority is the lowest (thus has highest meaning).
+   * <p>For that, the {@code user} is providing all their subscribed to groups, from which the
+   * highest is filtered out and directly applied.
+   *
+   * @param user the user to apply the highest possible style to
+   */
   public void applyHighestPossibleStyle(PerxUser user) {
     @Nullable Player player = user.getPlayer();
     Preconditions.checkNotNull(player, "Player is now offline");

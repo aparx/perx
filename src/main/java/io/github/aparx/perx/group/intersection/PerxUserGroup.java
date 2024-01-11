@@ -95,6 +95,11 @@ public class PerxUserGroup implements DatabaseConvertible<UserGroupModel>,
     return model.getUserId();
   }
 
+  public boolean isExpired() {
+    @Nullable Date endDate = getEndingDate();
+    return endDate != null && System.currentTimeMillis() > endDate.getTime();
+  }
+
   public @Nullable Date getEndingDate() {
     return model.getEndDate();
   }

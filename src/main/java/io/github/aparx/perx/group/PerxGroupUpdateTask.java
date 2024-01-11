@@ -49,7 +49,7 @@ public final class PerxGroupUpdateTask {
         .map(userService::get)
         .filter(Objects::nonNull)
         .flatMap((user) -> user.getSubscribed().stream())
-        .forEach(groupHandler::unsubscribeIfPastEndDate);
+        .forEach(groupHandler::unsubscribeIfNeeded);
   }
 
 }
