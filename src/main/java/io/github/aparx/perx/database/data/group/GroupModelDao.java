@@ -75,7 +75,7 @@ public class GroupModelDao extends BaseDaoImpl<GroupModel, String> {
     PerxGroupMutateEvent event = new PerxGroupMutateEvent(type, group);
     Bukkit.getPluginManager().callEvent(event);
     if (event.isCancelled())
-      return CompletableFuture.failedFuture(new IllegalStateException("Cancelled"));
+      return CompletableFuture.failedFuture(new RuntimeException("Action cancelled"));
     return CompletableFuture.completedFuture(null);
   }
 

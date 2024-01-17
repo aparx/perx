@@ -32,6 +32,7 @@ import org.checkerframework.framework.qual.DefaultQualifier;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -83,46 +84,40 @@ public final class Perx {
     return instance.logger;
   }
 
-  private static <T> T require(@Nullable T val, String message) {
-    if (val == null)
-      throw new IllegalArgumentException(message);
-    return val;
-  }
-
   public boolean isLoaded() {
     return loaded;
   }
 
   public Database getDatabase() {
-    return require(database, "Database is undefined");
+    return Preconditions.checkNotNull(database);
   }
 
   public PerxGroupService getGroupService() {
-    return require(groupService, "Service is undefined");
+    return Preconditions.checkNotNull(groupService);
   }
 
   public PerxGroupHandler getGroupHandler() {
-    return require(groupHandler, "Service is undefined");
+    return Preconditions.checkNotNull(groupHandler);
   }
 
   public PerxUserGroupService getUserGroupService() {
-    return require(userGroupService, "Service is undefined");
+    return Preconditions.checkNotNull(userGroupService);
   }
 
   public PerxUserService getUserService() {
-    return require(userService, "Service is undefined");
+    return Preconditions.checkNotNull(userService);
   }
 
   public PerxGroupUpdateTask getGroupUpdateTask() {
-    return require(groupUpdateTask, "GroupUpdateTask is undefined");
+    return Preconditions.checkNotNull(groupUpdateTask);
   }
 
   public ConfigManager getConfigManager() {
-    return require(configManager, "ConfigManager is undefined");
+    return Preconditions.checkNotNull(configManager);
   }
 
   public PerxSignManager getSignManager() {
-    return require(signManager, "SignManager is undefined");
+    return Preconditions.checkNotNull(signManager);
   }
 
   public MessageRepository getMessages() {
@@ -130,7 +125,7 @@ public final class Perx {
   }
 
   public PermissionAdapterFactory getPermissionAdapterFactory() {
-    return require(permissionAdapterFactory, "PermissionAdapter factory is null");
+    return Objects.requireNonNull(permissionAdapterFactory, "PermissionAdapter factory is null");
   }
 
   @CanIgnoreReturnValue
@@ -143,7 +138,6 @@ public final class Perx {
     Preconditions.checkNotNull(database, "Database");
     Preconditions.checkNotNull(styleExecutor, "Style executor");
     Preconditions.checkNotNull(factory, "PermissionAdapter factory");
-    if (loaded) return false;
     synchronized (lock) {
       if (loaded) return false;
       try {
@@ -156,7 +150,8 @@ public final class Perx {
         (this.groupService = new PerxGroupManager(database)).load();
         (this.userGroupService = new PerxUserGroupManager(database)).load();
         this.userService = new PerxUserManager(database, userGroupService);
-        this.groupHandler = new PerxGroupHandler(database, styleExecutor);
+        this.groupHandler = new PerxGroupHandler(
+            database, styleExecutor, userService, groupService, userGroupService);
         (this.groupUpdateTask = new PerxGroupUpdateTask(plugin)).start();
         (this.signManager = new PerxSignManager(plugin.getDataFolder())).load();
         return (this.loaded = true);
@@ -170,7 +165,6 @@ public final class Perx {
 
   @CanIgnoreReturnValue
   public boolean unload() {
-    if (!loaded) return false;
     synchronized (lock) {
       if (!loaded) return false;
       try {
@@ -178,7 +172,7 @@ public final class Perx {
           groupUpdateTask.stop();
         if (groupHandler != null && userService != null)
           Bukkit.getOnlinePlayers().forEach((player) -> {
-            @Nullable PerxUser user = userService.get(player);
+            @Nullable PerxUser user = userService.getRepository().get(player);
             if (user == null) return;
             // clear player from all groups without unsubscribing
             for (PerxUserGroup userGroup : new HashSet<>(user.getSubscribed())) {

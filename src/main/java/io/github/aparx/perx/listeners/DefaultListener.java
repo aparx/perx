@@ -2,8 +2,6 @@ package io.github.aparx.perx.listeners;
 
 import io.github.aparx.perx.Perx;
 import io.github.aparx.perx.events.GroupsFetchedEvent;
-import io.github.aparx.perx.events.PerxGroupMutateEvent;
-import io.github.aparx.perx.events.PerxMutateType;
 import io.github.aparx.perx.message.LookupPopulator;
 import io.github.aparx.perx.message.Message;
 import io.github.aparx.perx.user.UserCacheStrategy;
@@ -40,7 +38,7 @@ public final class DefaultListener implements Listener {
     if (event.getLoginResult() == AsyncPlayerPreLoginEvent.Result.ALLOWED)
       // fetch the user on login, so the user is fresh near join
       Perx.getInstance().getUserService()
-          .fetchOrGet(event.getUniqueId(), UserCacheStrategy.AUTO);
+          .getOrFetch(event.getUniqueId(), UserCacheStrategy.AUTO);
   }
 
   @EventHandler(priority = EventPriority.HIGHEST)
@@ -67,7 +65,7 @@ public final class DefaultListener implements Listener {
           .getLookup()));
     // remove the quitting player from cache
     UUID uuid = event.getPlayer().getUniqueId();
-    Perx.getInstance().getUserService().remove(uuid);
+    Perx.getInstance().getUserService().getRepository().remove(uuid);
     Perx.getInstance().getUserGroupService().getRepository().removeByUser(uuid);
   }
 

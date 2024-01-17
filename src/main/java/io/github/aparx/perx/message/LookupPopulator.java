@@ -119,7 +119,7 @@ public class LookupPopulator {
     put(prefix, (OfflinePlayer) player);
     put(prefix.add("displayName"), player.getDisplayName()); // TODO test with group
     put(prefix.add("tabListName"), player.getPlayerListName());
-    @Nullable PerxUser user = Perx.getInstance().getUserService().get(player);
+    @Nullable PerxUser user = Perx.getInstance().getUserService().getRepository().get(player);
     if (user != null)
       user.getHighestStyledGroup().ifPresent((userGroup) -> {
         put(prefix.add("group"), userGroup);

@@ -55,9 +55,9 @@ public class InfoCommand extends CommandNode {
 
     PerxUserService userService = Perx.getInstance().getUserService();
     context.respond(StringUtils.SPACE);
-    if (!userService.contains(targetPlayer))
+    if (!userService.getRepository().contains(targetPlayer))
       context.respond(Message.GENERIC_LOADING);
-    userService.fetchOrGet(targetPlayer, UserCacheStrategy.TEMPORARY).thenAccept((user) -> {
+    userService.getOrFetch(targetPlayer, UserCacheStrategy.TEMPORARY).thenAccept((user) -> {
       OfflinePlayer offline = user.getOffline();
       Collection<PerxUserGroup> subscribed = new ArrayList<>(user.getSubscribed());
       if (!offline.isOnline())

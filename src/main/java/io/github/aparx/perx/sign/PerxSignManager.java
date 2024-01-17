@@ -111,7 +111,7 @@ public final class PerxSignManager implements Listener {
           "-",
           StringUtils.SPACE
       };
-      @Nullable PerxUser user = Perx.getInstance().getUserService().get(player);
+      @Nullable PerxUser user = Perx.getInstance().getUserService().getRepository().get(player);
       if (user == null) {
         player.sendSignChange(location, lines);
         return;

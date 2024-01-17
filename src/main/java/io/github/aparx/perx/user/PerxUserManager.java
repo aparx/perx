@@ -1,7 +1,6 @@
 package io.github.aparx.perx.user;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.AbstractIterator;
 import io.github.aparx.perx.database.Database;
 import io.github.aparx.perx.group.intersection.PerxUserGroupService;
 import org.bukkit.OfflinePlayer;
@@ -9,9 +8,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -23,57 +19,63 @@ import java.util.concurrent.CompletableFuture;
 @DefaultQualifier(NonNull.class)
 public class PerxUserManager implements PerxUserService {
 
-  private transient final Object lock = new Object();
+  protected transient final Object mutex = new Object();
 
-  protected final Map<UUID, PerxUser> userMap = new HashMap<>();
-  protected final Database database;
-  protected final PerxUserGroupService userGroupService;
+  private final PerxUserRepository repository;
+  private final Database database;
+  private final PerxUserGroupService userGroupService;
 
   public PerxUserManager(Database database, PerxUserGroupService userGroupService) {
     Preconditions.checkNotNull(database, "Database must not be null");
     Preconditions.checkNotNull(userGroupService, "Service must not be null");
     this.database = database;
     this.userGroupService = userGroupService;
+    this.repository = new PerxUserCache(mutex);
   }
 
   @Override
   public PerxUserManager copy() {
     PerxUserManager manager = new PerxUserManager(database, userGroupService);
-    manager.userMap.putAll(userMap);
+    repository.forEach(manager.repository::add);
     return manager;
   }
 
   @Override
-  public CompletableFuture<PerxUser> fetchOrGet(UUID uuid, UserCacheStrategy strategy) {
-    if (userMap.containsKey(uuid))
-      return CompletableFuture.completedFuture(userMap.get(uuid));
-    synchronized (lock) {
-      if (userMap.containsKey(uuid))
-        return CompletableFuture.completedFuture(userMap.get(uuid));
+  public PerxUserRepository getRepository() {
+    return repository;
+  }
+
+  @Override
+  public CompletableFuture<PerxUser> getOrFetch(UUID uuid, UserCacheStrategy strategy) {
+    if (repository.contains(uuid))
+      return CompletableFuture.completedFuture(repository.get(uuid));
+    synchronized (mutex) {
+      if (repository.contains(uuid))
+        return CompletableFuture.completedFuture(repository.get(uuid));
       return userGroupService.getUserGroupsByUser(uuid).thenApply((userGroups) -> {
-        PerxUser user = (userMap.containsKey(uuid) ? userMap.get(uuid) : new PerxUser(uuid));
+        @Nullable PerxUser user = repository.get(uuid);
+        if (user == null) user = new PerxUser(uuid);
         userGroups.forEach(user::addGroup);
         UserCacheStrategy strat = strategy;
         if (strat == UserCacheStrategy.AUTO && user.getOffline().isOnline())
           strat = UserCacheStrategy.RUNTIME;
         if (strat == UserCacheStrategy.RUNTIME)
-          userMap.put(uuid, user);
-        else if (userMap.containsKey(uuid))
-          userMap.replace(uuid, user);
+          repository.add(user);
+        else if (repository.contains(uuid))
+          repository.replace(user);
         return user;
       });
     }
   }
 
-  public CompletableFuture<PerxUser> fetchOrGet(
-      OfflinePlayer player, UserCacheStrategy strategy) {
-    return fetchOrGet(player.getUniqueId(), strategy);
+  public CompletableFuture<PerxUser> getOrFetch(OfflinePlayer player, UserCacheStrategy strategy) {
+    return getOrFetch(player.getUniqueId(), strategy);
   }
 
   @Override
   public CompletableFuture<Void> delete(UUID uuid) {
     return userGroupService.deleteByUser(uuid).thenAccept((val) -> {
-      if (val) remove(uuid);
+      if (val) repository.remove(uuid);
     });
   }
 
@@ -87,68 +89,4 @@ public class PerxUserManager implements PerxUserService {
     return delete(user.getId());
   }
 
-  @Override
-  public @Nullable PerxUser get(UUID userId) {
-    synchronized (lock) {
-      return userMap.get(userId);
-    }
-  }
-
-  @Override
-  public @Nullable PerxUser get(OfflinePlayer player) {
-    synchronized (lock) {
-      return userMap.get(player.getUniqueId());
-    }
-  }
-
-  @Override
-  public boolean contains(UUID uuid) {
-    synchronized (lock) {
-      return userMap.containsKey(uuid);
-    }
-  }
-
-  @Override
-  public boolean contains(OfflinePlayer player) {
-    synchronized (lock) {
-      return userMap.containsKey(player.getUniqueId());
-    }
-  }
-
-  @Override
-  public boolean remove(PerxUser user) {
-    synchronized (lock) {
-      return userMap.remove(user.getId(), user);
-    }
-  }
-
-  @Override
-  public boolean remove(UUID uuid) {
-    synchronized (lock) {
-      return userMap.remove(uuid) != null;
-    }
-  }
-
-  @Override
-  public boolean remove(OfflinePlayer player) {
-    synchronized (lock) {
-      return userMap.remove(player.getUniqueId()) != null;
-    }
-  }
-
-  @Override
-  public Iterator<PerxUser> iterator() {
-    synchronized (lock) {
-      Iterator<PerxUser> iterator = userMap.values().iterator();
-      return new AbstractIterator<>() {
-        @Nullable
-        @Override
-        protected PerxUser computeNext() {
-          if (!iterator.hasNext())
-            return endOfData();
-          return iterator.next();
-        }
-      };
-    }
-  }
 }

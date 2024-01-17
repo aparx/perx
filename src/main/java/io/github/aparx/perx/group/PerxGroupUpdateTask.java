@@ -46,7 +46,7 @@ public final class PerxGroupUpdateTask {
     PerxGroupHandler groupHandler = Perx.getInstance().getGroupHandler();
     PerxUserService userService = Perx.getInstance().getUserService();
     Bukkit.getOnlinePlayers().stream()
-        .map(userService::get)
+        .map(userService.getRepository()::get)
         .filter(Objects::nonNull)
         .flatMap((user) -> user.getSubscribed().stream())
         .forEach(groupHandler::unsubscribeIfNeeded);

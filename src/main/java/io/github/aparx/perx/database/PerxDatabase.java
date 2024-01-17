@@ -117,11 +117,7 @@ public class PerxDatabase implements Database {
   protected <R> void createAsyncTask(CompletableFuture<R> future, ThrowingSupplier<R> executor) {
     Bukkit.getScheduler().runTaskAsynchronously(Perx.getPlugin(), () -> {
       try {
-        final R r;
-        synchronized (lock) {
-          r = executor.execute();
-        }
-        future.complete(r);
+        future.complete(executor.execute());
       } catch (Exception ex) {
         future.completeExceptionally(ex);
       }

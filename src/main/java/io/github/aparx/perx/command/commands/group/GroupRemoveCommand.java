@@ -47,7 +47,7 @@ public class GroupRemoveCommand extends AbstractGroupCommand {
     if (args.isEmpty()) throw createSyntaxError(context);
     OfflinePlayer target = args.first().getOfflinePlayer();
     PerxUserService userService = Perx.getInstance().getUserService();
-    @Nullable PerxUser user = userService.get(target);
+    @Nullable PerxUser user = userService.getRepository().get(target);
     LookupPopulator populator = new LookupPopulator()
         .put(ArrayPath.of("group"), group)
         .put(ArrayPath.of("target"), target);
@@ -74,7 +74,7 @@ public class GroupRemoveCommand extends AbstractGroupCommand {
     return getCompletingPlayerStream(context, args.getString(1))
         .filter((player) -> {
           if (group == null) return true;
-          @Nullable PerxUser user = userService.get(player.getUniqueId());
+          @Nullable PerxUser user = userService.getRepository().get(player.getUniqueId());
           return user == null || user.hasGroup(group.getName());
         })
         .map(Player::getName)

@@ -143,7 +143,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
     BukkitThreads.runOnPrimaryThread(() -> {
       PerxUserService userService = Perx.getInstance().getUserService();
       Bukkit.getOnlinePlayers().forEach((player) -> {
-        @Nullable PerxUser user = userService.get(player);
+        @Nullable PerxUser user = userService.getRepository().get(player);
         if (user == null || !user.hasGroup(getName())) return;
         action.accept(user, player);
       });
@@ -312,7 +312,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
    */
   @Override
   public Iterator<PerxUser> iterator() {
-    Iterator<PerxUser> iterator = Perx.getInstance().getUserService().iterator();
+    Iterator<PerxUser> iterator = Perx.getInstance().getUserService().getRepository().iterator();
     return new AbstractIterator<>() {
       @Nullable
       @Override
