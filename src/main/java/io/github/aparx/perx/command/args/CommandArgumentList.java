@@ -23,6 +23,8 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
   private static final CommandArgumentList EMPTY =
       new CommandArgumentList(ArrayUtils.EMPTY_STRING_ARRAY);
 
+  private final Object mutex;
+
   private final int hashCode;
   private final String[] args;
   private final @Nullable CommandArgument[] compiled;
@@ -30,14 +32,16 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
   private final int offset, length;
 
   private CommandArgumentList(String[] args) {
-    this(args, new CommandArgument[args.length], 0, args.length);
+    this(new Object(), args, new CommandArgument[args.length], 0, args.length);
   }
 
   private CommandArgumentList(
-      String[] args, @Nullable CommandArgument[] compiled, int offset, int length) {
+      Object mutex, String[] args, @Nullable CommandArgument[] compiled, int offset, int length) {
+    Preconditions.checkNotNull(mutex, "Mutex must not be null");
     Preconditions.checkArgument(compiled.length == args.length, "Length mismatch");
     assert offset >= 0 && offset <= args.length;
     assert length >= 0 && length <= args.length;
+    this.mutex = mutex;
     this.args = args;
     this.compiled = compiled;
     this.hashCode = hashCode(args, offset, length);
@@ -88,7 +92,7 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
     index += offset;
     @Nullable CommandArgument arg = compiled[index];
     if (arg != null) return arg;
-    synchronized (this) {
+    synchronized (mutex) {
       arg = compiled[index];
       if (arg != null) return arg;
       arg = new CommandArgument(args[index]);
@@ -110,7 +114,7 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
     Preconditions.checkPositionIndex(toExclusive, length());
     Preconditions.checkArgument(toExclusive >= fromInclusive, "from > to");
     if (fromInclusive == toExclusive) return EMPTY;
-    return new CommandArgumentList(args, compiled,
+    return new CommandArgumentList(mutex, args, compiled,
         offset + fromInclusive, (toExclusive - fromInclusive));
   }
 
