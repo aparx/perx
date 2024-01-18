@@ -17,6 +17,7 @@ import io.github.aparx.perx.listeners.DefaultListener;
 import io.github.aparx.perx.message.MessageMap;
 import io.github.aparx.perx.message.MessageRepository;
 import io.github.aparx.perx.permission.PermissionAdapterFactory;
+import io.github.aparx.perx.sign.PerxSignFile;
 import io.github.aparx.perx.sign.PerxSignHandler;
 import io.github.aparx.perx.sign.PerxSignStorage;
 import io.github.aparx.perx.user.PerxUser;
@@ -153,7 +154,7 @@ public final class Perx {
         this.groupHandler = new PerxGroupHandler(
             database, styleExecutor, userService, groupService, userGroupService);
         (this.groupUpdateTask = new PerxGroupUpdateTask(plugin)).start();
-        (this.signManager = new PerxSignHandler(PerxSignStorage.ofFile(
+        (this.signManager = new PerxSignHandler(new PerxSignFile(
             new File(plugin.getDataFolder(), ".storage/signs.dat")
         ))).load();
         return (this.loaded = true);

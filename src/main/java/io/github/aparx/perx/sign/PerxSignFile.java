@@ -25,6 +25,10 @@ public final class PerxSignFile implements PerxSignStorage {
   private final File file;
   private final PerxSignRepository repository;
 
+  public PerxSignFile(@NonNull File file) {
+    this(file, new PerxSignCache());
+  }
+
   public PerxSignFile(@NonNull File file, PerxSignRepository repository) {
     Preconditions.checkNotNull(file, "File must not be null");
     Preconditions.checkNotNull(repository, "Repository must not be null");

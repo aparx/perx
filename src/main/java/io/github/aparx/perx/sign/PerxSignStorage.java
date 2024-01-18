@@ -30,12 +30,4 @@ public interface PerxSignStorage {
   @CanIgnoreReturnValue
   CompletableFuture<Boolean> remove(Location location);
 
-  static PerxSignStorage ofFile(File file, PerxSignRepository repository) {
-    return new PerxSignFile(file, repository);
-  }
-
-  static PerxSignStorage ofFile(File file) {
-    return ofFile(file, new PerxSignCache());
-  }
-
 }
