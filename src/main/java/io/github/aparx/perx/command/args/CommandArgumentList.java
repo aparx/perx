@@ -61,8 +61,8 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
 
   private static int hashCode(String[] args, int offset, int length) {
     int hashCode = 0;
-    for (int i = offset; i < offset + length && i < args.length; ++i)
-      hashCode = 31 * hashCode + args[i].hashCode();
+    for (int i = 0, j; i < length && (j = offset + i) < args.length; ++i)
+      hashCode = 31 * hashCode + args[j].hashCode();
     return hashCode;
   }
 
