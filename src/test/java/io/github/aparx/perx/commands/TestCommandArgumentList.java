@@ -1,6 +1,7 @@
 package io.github.aparx.perx.commands;
 
 import io.github.aparx.perx.command.args.CommandArgumentList;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -64,6 +65,20 @@ public class TestCommandArgumentList {
     Assertions.assertEquals("c", args1.get(1).value());
     Assertions.assertThrows(IndexOutOfBoundsException.class, () -> args1.get(2));
     Assertions.assertThrows(IndexOutOfBoundsException.class, () -> args1.get(-1));
+  }
+
+  @Test
+  public void testJoin() {
+    CommandArgumentList args0 = CommandArgumentList.of("a", "b", "c");
+    Assertions.assertEquals("a b c", args0.join());
+    Assertions.assertEquals("b c", args0.join(1));
+    Assertions.assertEquals("c", args0.join(2));
+    Assertions.assertEquals(StringUtils.EMPTY, args0.join(3));
+
+    CommandArgumentList args1 = args0.sublist(1);
+    Assertions.assertEquals("b c", args1.join());
+    Assertions.assertEquals("c", args1.join(1));
+    Assertions.assertEquals(StringUtils.EMPTY, args1.join(2));
   }
 
 }

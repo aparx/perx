@@ -65,8 +65,8 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
 
   private static int hashCode(String[] args, int offset, int length) {
     int hashCode = 0;
-    for (int i = 0, j; i < length && (j = offset + i) < args.length; ++i)
-      hashCode = 31 * hashCode + args[j].hashCode();
+    for (int i = 0; i < length && offset + i < args.length; ++i)
+      hashCode = 31 * hashCode + args[offset + i].hashCode();
     return hashCode;
   }
 
@@ -120,15 +120,15 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
 
   public String join(int fromInclusiveIndex, CharSequence separator) {
     StringBuilder builder = new StringBuilder();
-    for (int i = fromInclusiveIndex; i < length; ++i) {
+    for (int i = 0; i < length && fromInclusiveIndex + i < length; ++i) {
       if (!builder.isEmpty()) builder.append(separator);
-      builder.append(getString(i));
+      builder.append(getString(fromInclusiveIndex + i));
     }
     return builder.toString();
   }
 
   public String join(CharSequence separator) {
-    return String.join(separator, args);
+    return join(0, separator);
   }
 
   public String join(int fromInclusiveIndex) {
