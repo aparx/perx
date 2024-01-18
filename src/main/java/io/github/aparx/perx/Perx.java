@@ -46,7 +46,7 @@ import java.util.logging.Logger;
 @DefaultQualifier(NonNull.class)
 public final class Perx {
 
-  private static final Perx instance = new Perx();
+  private static @Nullable Perx instance;
 
   private transient final Object lock = new Object();
 
@@ -72,17 +72,24 @@ public final class Perx {
   private Perx() {}
 
   public static Perx getInstance() {
-    return instance;
+    if (instance != null)
+      return instance;
+    synchronized (Perx.class) {
+      if (instance != null)
+        return instance;
+      instance = new Perx();
+      return instance;
+    }
   }
 
   public static Plugin getPlugin() {
-    @Nullable Plugin plugin = instance.plugin;
+    @Nullable Plugin plugin = getInstance().plugin;
     Preconditions.checkState(plugin != null, "Perx is not loaded");
     return plugin;
   }
 
   public static Logger getLogger() {
-    return instance.logger;
+    return getInstance().logger;
   }
 
   public boolean isLoaded() {

@@ -21,43 +21,62 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
   public static final String ARGUMENT_SEPARATOR = " ";
 
   private static final CommandArgumentList EMPTY =
-      new CommandArgumentList(new String[0], new CommandArgument[0]);
+      new CommandArgumentList(ArrayUtils.EMPTY_STRING_ARRAY);
 
   private final int hashCode;
   private final String[] args;
   private final @Nullable CommandArgument[] compiled;
 
-  private CommandArgumentList(String[] args, @Nullable CommandArgument[] compiled) {
+  private final int offset, length;
+
+  private CommandArgumentList(String[] args) {
+    this(args, new CommandArgument[args.length], 0, args.length);
+  }
+
+  private CommandArgumentList(
+      String[] args, @Nullable CommandArgument[] compiled, int offset, int length) {
     Preconditions.checkArgument(compiled.length == args.length, "Length mismatch");
+    assert offset >= 0 && offset <= args.length;
+    assert length >= 0 && length <= args.length;
     this.args = args;
     this.compiled = compiled;
-    this.hashCode = Arrays.hashCode(args);
+    this.hashCode = hashCode(args, offset, length);
+    this.offset = offset;
+    this.length = length;
   }
 
-  public static CommandArgumentList of(String[] args) {
+  public static CommandArgumentList of(String... args) {
+    Preconditions.checkNotNull(args, "Vararg must not be null");
     Validate.noNullElements(args, "Argument must not be null");
-    return new CommandArgumentList(args, new CommandArgument[args.length]);
-  }
-
-  public static CommandArgumentList parse(String line) {
-    return of(line.split(ARGUMENT_SEPARATOR));
+    return new CommandArgumentList(args);
   }
 
   public static CommandArgumentList of() {
     return EMPTY;
   }
 
+  public static CommandArgumentList parse(String line) {
+    return of(line.split(ARGUMENT_SEPARATOR));
+  }
+
+  private static int hashCode(String[] args, int offset, int length) {
+    int hashCode = 0;
+    for (int i = offset; i < length && i < args.length; ++i)
+      hashCode = 31 * hashCode + args[i].hashCode();
+    return hashCode;
+  }
+
   public int length() {
-    return args.length;
+    return length;
   }
 
   public boolean isEmpty() {
-    return ArrayUtils.isEmpty(args);
+    return length == 0;
   }
 
   public String getString(int index) {
-    Preconditions.checkElementIndex(index, args.length);
-    return args[index];
+    Preconditions.checkElementIndex(index, length);
+    return args[offset + index];
   }
 
   public CommandArgument first() {
@@ -65,7 +84,8 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
   }
 
   public CommandArgument get(int index) {
-    Preconditions.checkElementIndex(index, compiled.length);
+    Preconditions.checkElementIndex(index, length);
+    index += offset;
     @Nullable CommandArgument arg = compiled[index];
     if (arg != null) return arg;
     synchronized (this) {
@@ -85,22 +105,20 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
     return sublist(fromInclusiveIndex, length());
   }
 
-  public CommandArgumentList sublist(int fromInclusiveIndex, int toExclusiveIndex) {
-    Preconditions.checkPositionIndex(fromInclusiveIndex, length());
-    Preconditions.checkPositionIndex(toExclusiveIndex, length());
-    return new CommandArgumentList(
-        Arrays.copyOfRange(args, fromInclusiveIndex, toExclusiveIndex),
-        Arrays.copyOfRange(compiled, fromInclusiveIndex, toExclusiveIndex));
+  public CommandArgumentList sublist(int fromInclusive, int toExclusive) {
+    Preconditions.checkPositionIndex(fromInclusive, length());
+    Preconditions.checkPositionIndex(toExclusive, length());
+    Preconditions.checkArgument(toExclusive >= fromInclusive, "from > to");
+    if (fromInclusive == toExclusive) return EMPTY;
+    return new CommandArgumentList(args, compiled,
+        offset + fromInclusive, (toExclusive - fromInclusive));
   }
 
   public String join(int fromInclusiveIndex, CharSequence separator) {
-    if (fromInclusiveIndex == 0)
-      return String.join(separator, args);
     StringBuilder builder = new StringBuilder();
-    for (int i = fromInclusiveIndex; i < args.length; ++i) {
-      String arg = args[i];
+    for (int i = fromInclusiveIndex; i < length; ++i) {
       if (!builder.isEmpty()) builder.append(separator);
-      builder.append(arg);
+      builder.append(getString(i));
     }
     return builder.toString();
   }
@@ -118,7 +136,9 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
   }
 
   public String[] toArray() {
-    return args.clone();
+    if (offset == 0 && length == args.length)
+      return args.clone();
+    return Arrays.copyOfRange(args, offset, offset + length);
   }
 
   @Override
@@ -141,7 +161,7 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
 
       @Override
       public boolean hasNext() {
-        return cursor < length();
+        return cursor < length;
       }
 
       @Override
