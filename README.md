@@ -37,6 +37,3 @@ PerxGroupBuilder.builder("admin")
   .push();
   //^ upserts group to the database
 ```
-
-### An das PlayLegend Entwicklungsteam
-Folgend findet sich eine Projektübersicht (Deutsch): https://docs.google.com/presentation/d/1XapqCryj0wmB78rzzybbEU5LY6gxr__NbOUVa-hRonc/edit?usp=sharing
