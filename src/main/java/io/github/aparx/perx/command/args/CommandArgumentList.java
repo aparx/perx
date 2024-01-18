@@ -23,7 +23,7 @@ public final class CommandArgumentList implements Iterable<CommandArgument> {
   private static final CommandArgumentList EMPTY =
       new CommandArgumentList(ArrayUtils.EMPTY_STRING_ARRAY);
 
-  private final Object mutex;
+  private final transient Object mutex;
 
   private final int hashCode;
   private final String[] args;
