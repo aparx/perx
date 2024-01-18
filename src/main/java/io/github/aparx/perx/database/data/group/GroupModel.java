@@ -9,6 +9,7 @@ import io.github.aparx.perx.group.PerxGroup;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author aparx (Vinzent Z.)
@@ -40,7 +41,7 @@ public class GroupModel implements DatabaseModel<String> {
   @DatabaseField(canBeNull = false)
   private String permissions;
 
-  protected GroupModel() {}
+  public GroupModel() {}
 
   public GroupModel(String id) {
     Preconditions.checkNotNull(id, "ID must not be null");
@@ -103,6 +104,24 @@ public class GroupModel implements DatabaseModel<String> {
 
   public void setPermissions(Map<String, Boolean> permissions) {
     setPermissions(permMapToString(permissions));
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    GroupModel that = (GroupModel) o;
+    return priority == that.priority
+        && isDefault == that.isDefault
+        && Objects.equals(id, that.id)
+        && Objects.equals(prefix, that.prefix)
+        && Objects.equals(suffix, that.suffix)
+        && Objects.equals(permissions, that.permissions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, priority, prefix, suffix, isDefault, permissions);
   }
 
   @Override

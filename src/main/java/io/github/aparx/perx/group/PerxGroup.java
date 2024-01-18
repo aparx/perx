@@ -5,7 +5,7 @@ import com.google.common.collect.AbstractIterator;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.j256.ormlite.dao.Dao;
 import io.github.aparx.perx.Perx;
-import io.github.aparx.perx.database.data.DatabaseConvertible;
+import io.github.aparx.perx.database.data.DatabaseModelConvertible;
 import io.github.aparx.perx.database.data.group.GroupModel;
 import io.github.aparx.perx.group.style.GroupStyleKey;
 import io.github.aparx.perx.permission.*;
@@ -39,25 +39,20 @@ import java.util.logging.Level;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public final class PerxGroup implements DatabaseConvertible<GroupModel>, Comparable<PerxGroup>,
-    Iterable<PerxUser> {
+public final class PerxGroup implements DatabaseModelConvertible<GroupModel>,
+    Comparable<PerxGroup>, Iterable<PerxUser> {
 
   public static final int DEFAULT_PRIORITY = 50;
 
-  private final String name;
   private final EnumMap<GroupStyleKey, @Nullable String> styles;
   private final PerxPermissionRepository permissionRepository;
 
-  /** Defines the default state of this group */
-  private boolean isDefault;
-
-  /** The lower the priority, the more important this group is */
-  private int priority = DEFAULT_PRIORITY;
+  private final GroupModel model;
 
   private PerxGroup(String name, Function<PerxGroup, PerxPermissionRepository> factory) {
     Preconditions.checkNotNull(name, "Name must not be null");
     Preconditions.checkNotNull(factory, "Factory must not be null");
-    this.name = transformKey(name);
+    this.model = new GroupModel(transformKey(name));
     this.styles = new EnumMap<>(GroupStyleKey.class);
     PerxPermissionRepository repository = factory.apply(this);
     Preconditions.checkNotNull(repository, "Permission repository must not be null");
@@ -104,7 +99,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   }
 
   public static PerxGroup copyOf(PerxGroup group) {
-    PerxGroup copy = ofRepository(group.name, group.permissionRepository.copy());
+    PerxGroup copy = ofRepository(group.getName(), group.permissionRepository.copy());
     copy.setPriority(group.getPriority());
     copy.setDefault(group.isDefault());
     copy.styles.putAll(group.styles);
@@ -112,7 +107,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   }
 
   public static int compare(PerxGroup a, PerxGroup b) {
-    return Integer.compare(b.priority, a.priority);
+    return Integer.compare(b.getPriority(), a.getPriority());
   }
 
   public PerxGroup copy() {
@@ -120,7 +115,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
   }
 
   public String getName() {
-    return name;
+    return model.getId();
   }
 
   /**
@@ -167,13 +162,10 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
    */
   @Override
   public GroupModel toModel() {
-    GroupModel groupModel = new GroupModel(getName());
-    groupModel.setPermissions(permissionRepository.toPermissionMap());
-    groupModel.setPrefix(getStyle(GroupStyleKey.PREFIX));
-    groupModel.setSuffix(getStyle(GroupStyleKey.SUFFIX));
-    groupModel.setDefault(isDefault());
-    groupModel.setPriority(getPriority());
-    return groupModel;
+    model.setPermissions(permissionRepository.toPermissionMap());
+    model.setPrefix(getStyle(GroupStyleKey.PREFIX));
+    model.setSuffix(getStyle(GroupStyleKey.SUFFIX));
+    return model;
   }
 
   @Override
@@ -249,7 +241,7 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
    * @return the priority of this group, lower meaning more important
    */
   public int getPriority() {
-    return priority;
+    return model.getPriority();
   }
 
   /**
@@ -260,43 +252,39 @@ public final class PerxGroup implements DatabaseConvertible<GroupModel>, Compara
    * @apiNote Note that previously allocated group models will not have this applied automatically.
    */
   public void setPriority(int priority) {
-    this.priority = priority;
+    model.setPriority(priority);
   }
 
   public boolean isDefault() {
-    return isDefault;
+    return model.isDefault();
   }
 
-  public void setDefault(boolean aDefault) {
-    isDefault = aDefault;
+  public void setDefault(boolean isDefault) {
+    model.setDefault(isDefault);
   }
 
   @Override
   public String toString() {
     return "PerxGroup{" +
-        "name='" + name + '\'' +
+        "name='" + getName() + '\'' +
         ", styles=" + styles +
         ", permissions=" + permissionRepository +
-        ", defaultValue=" + isDefault +
-        ", priority=" + priority +
+        ", model=" + model +
         '}';
   }
 
   @Override
-  public boolean equals(Object object) {
-    if (this == object) return true;
-    if (object == null || getClass() != object.getClass()) return false;
-    PerxGroup group = (PerxGroup) object;
-    return priority == group.priority
-        && isDefault == group.isDefault
-        && Objects.equals(name, group.name)
-        && Objects.equals(styles, group.styles)
-        && Objects.equals(permissionRepository, group.permissionRepository);
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    PerxGroup group = (PerxGroup) o;
+    return Objects.equals(permissionRepository, group.permissionRepository)
+        && Objects.equals(model, group.model);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, styles, permissionRepository, priority);
+    return Objects.hash(permissionRepository, model);
   }
 
   @Override

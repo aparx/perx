@@ -3,7 +3,7 @@ package io.github.aparx.perx.group.intersection;
 import com.google.common.base.Preconditions;
 import com.j256.ormlite.dao.Dao;
 import io.github.aparx.perx.Perx;
-import io.github.aparx.perx.database.data.DatabaseConvertible;
+import io.github.aparx.perx.database.data.DatabaseModelConvertible;
 import io.github.aparx.perx.database.data.many.UserGroupModel;
 import io.github.aparx.perx.group.PerxGroup;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public class PerxUserGroup implements DatabaseConvertible<UserGroupModel>,
+public class PerxUserGroup implements DatabaseModelConvertible<UserGroupModel>,
     Comparable<PerxUserGroup> {
 
   public static Comparator<PerxUserGroup> USER_GROUP_COMPARATOR = PerxUserGroup::compare;

@@ -9,8 +9,9 @@ import java.util.concurrent.CompletableFuture;
  * @version 2024-01-04 04:20
  * @since 1.0
  */
-public interface DatabaseConvertible<T extends DatabaseModel<?>> {
+public interface DatabaseModelConvertible<T extends DatabaseModel<?>> {
 
+  /** Returns a database model representation. The returning model may be new or not. */
   T toModel();
 
   /** Pushes this model to the database (performs an update or insert) */

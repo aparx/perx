@@ -16,9 +16,9 @@ import io.github.aparx.perx.group.intersection.PerxUserGroupService;
 import io.github.aparx.perx.listeners.DefaultListener;
 import io.github.aparx.perx.message.MessageMap;
 import io.github.aparx.perx.message.MessageRepository;
-import io.github.aparx.perx.permission.PermissionAdapter;
 import io.github.aparx.perx.permission.PermissionAdapterFactory;
-import io.github.aparx.perx.sign.PerxSignManager;
+import io.github.aparx.perx.sign.PerxSignHandler;
+import io.github.aparx.perx.sign.PerxSignStorage;
 import io.github.aparx.perx.user.PerxUser;
 import io.github.aparx.perx.user.PerxUserManager;
 import io.github.aparx.perx.user.PerxUserService;
@@ -30,10 +30,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -64,7 +64,7 @@ public final class Perx {
   private @Nullable PerxUserGroupService userGroupService;
   private @Nullable PerxGroupUpdateTask groupUpdateTask;
   private @Nullable ConfigManager configManager;
-  private @Nullable PerxSignManager signManager;
+  private @Nullable PerxSignHandler signManager;
 
   private Logger logger = Bukkit.getLogger();
 
@@ -116,7 +116,7 @@ public final class Perx {
     return Preconditions.checkNotNull(configManager);
   }
 
-  public PerxSignManager getSignManager() {
+  public PerxSignHandler getSignManager() {
     return Preconditions.checkNotNull(signManager);
   }
 
@@ -153,7 +153,9 @@ public final class Perx {
         this.groupHandler = new PerxGroupHandler(
             database, styleExecutor, userService, groupService, userGroupService);
         (this.groupUpdateTask = new PerxGroupUpdateTask(plugin)).start();
-        (this.signManager = new PerxSignManager(plugin.getDataFolder())).load();
+        (this.signManager = new PerxSignHandler(PerxSignStorage.ofFile(
+            new File(plugin.getDataFolder(), ".storage/signs.dat")
+        ))).load();
         return (this.loaded = true);
       } catch (Exception e) {
         logger.log(Level.SEVERE, "Severe error on load", e);

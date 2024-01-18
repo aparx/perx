@@ -17,33 +17,24 @@ import java.util.Objects;
  * @since 1.0
  */
 @DefaultQualifier(NonNull.class)
-public final class PerxSign implements Serializable, Cloneable {
+public final class PerxSign implements Serializable {
 
   @Serial
   private static final long serialVersionUID = 9223372036854775807L;
 
   private @Nullable Location location;
 
-  public PerxSign() {}
+  private PerxSign() {}
 
-  public PerxSign(Location location) {
+  public static PerxSign of(Location location) {
     Preconditions.checkNotNull(location, "Location must not be null");
-    this.location = location;
+    PerxSign sign = new PerxSign();
+    sign.location = location;
+    return sign;
   }
 
   public @Nullable Location getLocation() {
     return location;
-  }
-
-  @Override
-  public PerxSign clone() {
-    try {
-      PerxSign sign = (PerxSign) super.clone();
-      sign.location = (location != null ? location.clone() : null);
-      return sign;
-    } catch (CloneNotSupportedException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Override
