@@ -10,6 +10,6 @@ public enum DatabaseState {
   DISABLED,
   LOADING,
   LOADED,
-  ERROR;
+  ERROR
 
 }

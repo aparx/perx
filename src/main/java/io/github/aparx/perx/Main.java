@@ -1,6 +1,7 @@
 package io.github.aparx.perx;
 
 import com.google.common.base.Preconditions;
+import com.j256.ormlite.logger.Logger;
 import io.github.aparx.perx.command.PerxCommand;
 import io.github.aparx.perx.config.ConfigManager;
 import io.github.aparx.perx.config.configs.DatabaseConfig;

@@ -46,9 +46,9 @@ import java.util.logging.Logger;
 @DefaultQualifier(NonNull.class)
 public final class Perx {
 
-  private static @Nullable Perx instance;
+  private static final Object lock = new Object();
 
-  private transient final Object lock = new Object();
+  private static @Nullable Perx instance;
 
   private final List<Listener> listeners = List.of(new DefaultListener());
   private final MessageRepository messages = new MessageMap();
@@ -74,7 +74,7 @@ public final class Perx {
   public static Perx getInstance() {
     if (instance != null)
       return instance;
-    synchronized (Perx.class) {
+    synchronized (lock) {
       if (instance != null)
         return instance;
       instance = new Perx();
@@ -154,6 +154,7 @@ public final class Perx {
         this.database = database;
         this.permissionAdapterFactory = factory;
         listeners.forEach((x) -> Bukkit.getPluginManager().registerEvents(x, plugin));
+        // service & manager allocation
         (this.configManager = new ConfigManager(plugin.getDataFolder())).load();
         (this.groupService = new PerxGroupManager(database)).load();
         (this.userGroupService = new PerxUserGroupManager(database)).load();
@@ -164,7 +165,9 @@ public final class Perx {
         (this.signManager = new PerxSignHandler(new PerxSignFile(
             new File(plugin.getDataFolder(), ".storage/signs.dat")
         ))).load();
-        return (this.loaded = true);
+        // finish
+        this.loaded = true;
+        return true;
       } catch (Exception e) {
         logger.log(Level.SEVERE, "Severe error on load", e);
         Bukkit.getPluginManager().disablePlugin(plugin);
@@ -181,6 +184,7 @@ public final class Perx {
         if (groupUpdateTask != null)
           groupUpdateTask.stop();
         if (groupHandler != null && userService != null)
+          // reset all players within cache due to unknown next load
           Bukkit.getOnlinePlayers().forEach((player) -> {
             @Nullable PerxUser user = userService.getRepository().get(player);
             if (user == null) return;

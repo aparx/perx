@@ -49,7 +49,7 @@ public final class PerxSignFile implements PerxSignStorage {
   static void read(File file, Collection<PerxSign> out) {
     if (!file.exists()) return;
     try (ObjectInputStream output = new ObjectInputStream(new FileInputStream(file))) {
-      out.addAll((Set<PerxSign>) output.readObject());
+      out.addAll((Collection<PerxSign>) output.readObject());
     } catch (IOException | ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
@@ -80,7 +80,7 @@ public final class PerxSignFile implements PerxSignStorage {
   @Override
   public CompletableFuture<Void> save() {
     CompletableFuture<@Nullable Void> future = new CompletableFuture<>();
-    HashSet<PerxSign> signs = new HashSet<>(repository.toCollection());
+    Set<PerxSign> signs = new HashSet<>(repository.toCollection());
     Bukkit.getScheduler().runTaskAsynchronously(Perx.getPlugin(), () -> {
       save(file, signs); // <- this is what should happen asynchronously
       BukkitThreads.runOnPrimaryThread(() -> future.complete(null));
