@@ -8,6 +8,24 @@
 </p>
 <br/>
 
+### PlayLegend
+#### Mindestanforderungen
+- [x] Gruppen können im Spiel erstellt und verwaltet werden
+- [x] Die Gruppe muss mindestens folgende Eigenschaften haben (Name, Prefix + Suffix)
+- [x] Spieler soll einer Gruppe zugewiesen werden können (Permanent, Temporär)
+- [x] Prefix (+Suffix) von der Gruppe soll im Chat und beim Betreten des Servers angezeigt werden
+- [x] Wenn der Spieler eine neue Gruppe zugewiesen bekommt, soll diese sich unmittelbar ändern (Spieler soll nicht gekickt werden)
+- [x] Alle Nachrichten sollen in einer Konfigurationsdatei anpassbar sein
+- [x] Durch einen Befehl erfährt der Spieler seine aktuelle Gruppe und ggf. wie lange er diese noch hat
+- [x] Ein oder mehrere Schilder sollen hinzugefügt werden können, die Informationen eines einzelnen Spielers wie Name & Rang anzeigen
+- [x] Alle nötigen Information werden in einer relationalen Datenbank gespeichert (konfigurierbare Texte nicht)
+#### Bonus:
+- [x] Für eine Gruppe können Berechtigungen festgelegt und sollen dem Spieler dementsprechend zugewiesen werden. Abfrage über #hasPermission sollte funktionieren
+- [x] “*” Berechtigung
+- [ ] Unterstützung von mehreren Sprachen (=> theoretisch einfach implementierbar)
+- [x] Tabliste mit der jeweiligen Gruppe am besten sortiert
+- [x] Scoreboard mit der jeweiligen Gruppe (im Prinzip schon)
+
 ### Key features
 - Asynchronous to provide good performance on the primary thread 
 - Groups, players, permissions, prefixes and suffixes all manageable through the game
